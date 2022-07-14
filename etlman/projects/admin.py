@@ -33,8 +33,13 @@ class PipelineAdmin(admin.ModelAdmin):
     ]
 
 
+class StepAdmin(admin.ModelAdmin):
+    list_display = ["name", "step_order"]
+    list_filter = ("pipeline__project__name",)
+
+
 # Register your models here.
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(DataInterface, DataInterfaceAdmin)
 admin.site.register(Pipeline, PipelineAdmin)
-admin.site.register(Step)
+admin.site.register(Step, StepAdmin)

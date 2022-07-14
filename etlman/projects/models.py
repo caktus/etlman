@@ -50,6 +50,9 @@ class Step(models.Model):
     script = models.TextField()  # payload
     step_order = models.PositiveIntegerField()
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
