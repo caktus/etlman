@@ -280,3 +280,4 @@ etlman/media/
 .envs/*
 !.envs/.local/
 etlman/db.sqlite3
+env/
