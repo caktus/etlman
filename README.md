@@ -1,79 +1,24 @@
 # etlman
+## Local Setup
 
-Django-based ETL job manager
+**1. Get the project**
 
-[![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
-[![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+First clone the repository from Github and switch to the new directory:
 
-License: BSD
-
-## Settings
-
-Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
-
-## Basic Commands
-
-### Setting Up Your Users
-
--   To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
-
--   To create a **superuser account**, use this command:
-
-        $ python manage.py createsuperuser
-
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
-
-### Type checks
-
-Running type checks with mypy:
-
-    $ mypy etlman
-
-### Test coverage
-
-To run the tests, check your test coverage, and generate an HTML coverage report:
-
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
-
-#### Running tests with pytest
-
-    $ pytest
-
-### Live reloading and Sass CSS compilation
-
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
-
-### Celery
-
-This app comes with Celery.
-
-To run a celery worker:
-
-``` bash
-cd etlman
-celery -A config.celery_app worker -l info
+```linux
+    $ git clone git@github.com:caktus/etlman.git
+    $ cd etlman
 ```
 
-Please note: For Celery's import magic to work, it is important *where* the celery commands are run. If you are in the same folder with *manage.py*, you should be right.
+**2. Set up virtual environment**
 
-### Sentry
+Next, set up your virtual environment with Python3. For example, `etlman-venv`
+You will note the distinct lack of opinion on how you should manage your 
+virtual environment. This is by design.
 
-Sentry is an error logging aggregator service. You can sign up for a free account at <https://sentry.io/signup/?code=cookiecutter> or download and host it yourself.
-The system is set up with reasonable defaults, including 404 logging and integration with the WSGI application.
+In case you use [direnv](https://direnv.net/). 
 
-You must set the DSN url in production.
-
-## How to setup locally
-
-- Clone the repo
-- Have a postgres instance running either on docker exposed to your local machine, or install it locally
-- Preferably use ```direnv``` to have a easy config
-
-
-Example of .envrc file
-
+envrc sample file 
 ```
 layout python python3.9
 
@@ -81,11 +26,80 @@ export DATABASE_URL=postgres:///etlman_dev
 export USE_DOCKER=no
 ```
 
+
+**3. Install dependencies**
+??? (This may not be needed)
+
+**4. Pre-commit**
+
+Pre-commit is used to enforce a variety of community standards. CI runs it,
+so it's useful to setup the pre-commit hook to catch any issues before pushing
+to GitHub and reset your pre-commit cache to make sure that you're starting fresh.
+
+To install, run:
+
+```linux
+    (etlman-venv)$ pre-commit clean
+    (etlman-venv)$ pre-commit install
+```
+
+**5. Postgress**
+
+### Using Docker
+If you are unable to run Postgres locally (if you develop on an M1), Docker is a great alternative. See [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html) for more details on Docker for cookiecutter-django.
+
+#### Build the stack
+
+```
+(etlman-venv)$ docker-compose -f local.yml build
+```
+
+**Note**: Building the stack can take a while
+
+#### Run the stack
+To run the stack
+```
+(etlman-venv)$ docker-compose -f local.yml up
+```
+
+If you wish to only run the `django` container (will speed up reload), include `$ export COMPOSE_FILE=local.yml` in your `.envrc` file. After adding the command to the `.envrc` file, run:
+
+```
+(etlman-venv)$ docker compose up
+(etlman-venv)$ docker compose up -d
+```
+
+
+### Not Using Docker
+
+- Have a postgres instance running either on docker to your local machine, or install it locally
 - Create a database with  ```createdb etlman_dev```
 - python manage.py migrate
 - python manage.py runserver
 
+**6. Migrate and create a superuser**
+You'll need to open a bash shell container to run migrate and createsuperuser inside the container.
 
-### Docker
+```
+docker-compose exec django bash
+root# python manage.py migrate
+root# python manage.py createsuperuser
+```
 
-See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+**7. Testing**
+
+### Test coverage
+
+To run the tests, check your test coverage, and generate an HTML coverage report:
+```
+(etlman-venv)$ coverage run -m pytest
+(etlman-venv)$ coverage html
+(etlman-venv)$ open htmlcov/index.html
+```
+
+### Running tests with pytest
+
+```
+(etlman-venv)$ pytest
+```
+
