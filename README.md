@@ -65,9 +65,26 @@ The system is set up with reasonable defaults, including 404 logging and integra
 
 You must set the DSN url in production.
 
-## Deployment
+## How to setup locally
 
-The following details how to deploy this application.
+- Clone the repo
+- Have a postgres instance running either on docker exposed to your local machine, or install it locally
+- Preferably use ```direnv``` to have a easy config
+
+
+Example of .envrc file
+
+```
+layout python python3.9
+
+export DATABASE_URL=postgres:///etlman_dev
+export USE_DOCKER=no
+```
+
+- Create a database with  ```createdb etlman_dev```
+- python manage.py migrate
+- python manage.py runserver
+
 
 ### Docker
 
