@@ -70,8 +70,8 @@ THIRD_PARTY_APPS = [
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
-    "allauth.socialaccount"
-    # "django_celery_beat",
+    "allauth.socialaccount",
+    "django_celery_beat",
 ]
 
 LOCAL_APPS = [
