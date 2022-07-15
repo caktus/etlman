@@ -28,7 +28,12 @@ export USE_DOCKER=no
 
 
 **3. Install dependencies**
-??? (This may not be needed)
+
+This only really needed in case you aren't using docker, in this case you can fetch all dependencies - preferable inside your virtualenv - using the following command:
+
+```
+pip install -r requirements/local.txt
+```
 
 **4. Pre-commit**
 
