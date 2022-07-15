@@ -13,12 +13,12 @@ First clone the repository from Github and switch to the new directory:
 **2. Set up virtual environment**
 
 Next, set up your virtual environment with Python3. For example, `etlman-venv`
-You will note the distinct lack of opinion on how you should manage your 
+You will note the distinct lack of opinion on how you should manage your
 virtual environment. This is by design.
 
-In case you use [direnv](https://direnv.net/). 
+In case you use [direnv](https://direnv.net/).
 
-envrc sample file 
+envrc sample file
 ```
 layout python python3.9
 
@@ -107,4 +107,3 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 ```
 (etlman-venv)$ pytest
 ```
-
