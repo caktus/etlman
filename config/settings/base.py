@@ -293,11 +293,7 @@ ACCOUNT_FORMS = {"signup": "etlman.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "etlman.users.adapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 SOCIALACCOUNT_FORMS = {"signup": "etlman.users.forms.UserSocialSignupForm"}
-# django-compressor
-# ------------------------------------------------------------------------------
-# https://django-compressor.readthedocs.io/en/latest/quickstart/#installation
-INSTALLED_APPS += ["compressor"]
-STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
+
 
 # Your stuff...
 # ------------------------------------------------------------------------------
