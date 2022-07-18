@@ -5,7 +5,7 @@
 
 First clone the repository from Github and switch to the new directory:
 
-```linux
+```
     $ git clone git@github.com:caktus/etlman.git
     $ cd etlman
 ```
@@ -29,7 +29,7 @@ export USE_DOCKER=no
 
 **3. Install dependencies**
 
-This only really needed in case you aren't using docker, in this case you can fetch all dependencies - preferable inside your virtualenv - using the following command:
+This is needed only if you are not using Docker - in such case fetch all dependencies (preferable inside your virtualenv), run:
 
 ```
 pip install -r requirements/local.txt
@@ -46,12 +46,13 @@ To install, run:
 ```linux
     (etlman-venv)$ pre-commit clean
     (etlman-venv)$ pre-commit install
+    (etlman-venv)$ pre-commit run --all-files
 ```
 
 **5. Postgress**
 
 ### Using Docker
-If you are unable to run Postgres locally (if you develop on an M1), Docker is a great alternative. See [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html) for more details on Docker for cookiecutter-django.
+If you are unable to run Postgres locally (if you develop on an M1), Docker is a great alternative. See [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html) for more details on the Docker setup.
 
 #### Build the stack
 
@@ -62,6 +63,7 @@ If you are unable to run Postgres locally (if you develop on an M1), Docker is a
 **Note**: Building the stack can take a while
 
 #### Run the stack
+
 To run the stack
 ```
 (etlman-venv)$ docker-compose -f local.yml up
@@ -71,22 +73,26 @@ If you wish to only run the `django` container (will speed up reload), include `
 
 ```
 (etlman-venv)$ docker compose up
-(etlman-venv)$ docker compose up -d
+(etlman-venv)$ docker compose up -d (detached mode)
 ```
 
 
 ### Not Using Docker
 
-- Have a postgres instance running either on docker to your local machine, or install it locally
-- Create a database with  ```createdb etlman_dev```
-- python manage.py migrate
-- python manage.py runserver
+1.  Create a database with  ```createdb etlman_dev```
+2. python manage.py migrate
+3. python manage.py runserver
 
-**6. Migrate and create a superuser**
+**6. Exec into the Docker container(only if developing in Docker)**
 You'll need to open a bash shell container to run migrate and createsuperuser inside the container.
 
 ```
 docker-compose exec django bash
+```
+
+**7. Migrate and Create a super user**
+
+```
 root# python manage.py migrate
 root# python manage.py createsuperuser
 ```
