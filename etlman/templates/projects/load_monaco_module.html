@@ -1,0 +1,20 @@
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs/loader.js"></script>
+<script>
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs' } });
+    require(['vs/editor/editor.main'], () => {
+        // Initialize the editor
+        // TODO: make it so it works with multiple fields on the same page
+        const editor = monaco.editor.create(document.getElementById("monaco_field"), {
+            theme: 'vs-dark',
+            model: monaco.editor.createModel("print('Hellow Django')", "python"),
+            wordWrap: 'on',
+            automaticLayout: true,
+            minimap: {
+                enabled: false
+            },
+            scrollbar: {
+                vertical: 'auto'
+            }
+        });
+    });
+</script>

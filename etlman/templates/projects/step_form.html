@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% extends "load_monaco_module.html"}
+{% block content %}
+<form action="/step_form/" method="post">
+    {% csrf_token %}
+    {{ step_form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+{% endblock content %}
