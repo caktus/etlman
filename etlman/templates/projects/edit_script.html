@@ -1,15 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs/loader.js"></script>
 <script>
-    var require = {
-        paths: {
-            'vs': "{% static 'js/node_modules/monaco-editor/min/vs' %}",
-        }
-    };
-</script>
-<script src="{% static 'js/node_modules/monaco-editor/min/vs/loader.js' %}" ></script>
-<script>
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs' } });
     require(['vs/editor/editor.main'], () => {
         // Initialize the editor
         const editor = monaco.editor.create(document.getElementById("Content"), {
@@ -26,17 +21,30 @@
         });
     });
 </script>
-  <h1>{{ script.name }}</h1>
-  <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
+
+
+
+
+
+
+
+
+<h1>{{ script.name }}</h1>
+<form class="form-horizontal" method="post" action="{% url 'users:update' %}">
     {% csrf_token %}
     <div class="form-group">
         <label for="Content">Content</label>
         <div id="Content" style="min-height: 600px"></div>
     </div>
     <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn btn-primary">Update</button>
-      </div>
+        <div class="controls">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
     </div>
-  </form>
+</form>
+
+
+
+
+
 {% endblock %}
