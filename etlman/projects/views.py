@@ -1,26 +1,22 @@
-from re import template
+from django.forms import ValidationError
 from django.shortcuts import render
+
 from etlman.projects.forms import StepForm
-from django.contrib import messages
 from etlman.projects.models import Step
 
 
-def edit_script_view(request):
-    data = request.data
+def step_form_upsert_view(request, pk=None):
+
+    obj = Step.objects.get(id=pk) if pk else None
+
     if request.method == "POST":
-        if data.script_id:  # Updates step
-            # TODO: Check if all fields are filled and/or the 'Edit' function pre-filled the form controls
-            obj = Step.objects.get(id=data.script_id)
-            obj.name = data.name
-            obj.script = data.script
-        else:  # Creates a new step
-            obj = Step.objects.create()
-            obj.name = data.name
-            obj.script = data.script
-            Step.save(obj)
+        print(request.POST)
+        form = StepForm(request.POST, instance=obj)
+        if form.is_valid():
+            print("VALID")
+            form.save()
+        else:
+            print("INVALID")
 
-    return render(request, template_name="projects/edit_script.html")
-
-def step_form_view(request):
-    step_form = StepForm()
-    return render(request, "projects/step_form.html", context={'step_form': step_form})
+    context = {"form": StepForm()}
+    return render(request, "projects/step_form.html", context)

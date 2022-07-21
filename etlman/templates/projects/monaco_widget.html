@@ -4,7 +4,7 @@
     require(['vs/editor/editor.main'], () => {
         // Initialize the editor
         // TODO: make it so it works with multiple fields on the same page
-        const editor = monaco.editor.create(document.getElementById("monaco_field"), {
+        const editor = monaco.editor.create(document.getElementById("monaco_editor"), {
             theme: 'vs-dark',
             model: monaco.editor.createModel("print('Hellow Django')", "python"),
             wordWrap: 'on',
@@ -18,3 +18,6 @@
         });
     });
 </script>
+
+<!-- This is CSS very hackish, we need to change it -->
+<div id="monaco_editor" style="height: 30em;"></div>
