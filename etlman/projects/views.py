@@ -1,4 +1,3 @@
-from django.forms import ValidationError
 from django.shortcuts import render
 
 from etlman.projects.forms import StepForm
@@ -13,10 +12,9 @@ def step_form_upsert_view(request, pk=None):
         print(request.POST)
         form = StepForm(request.POST, instance=obj)
         if form.is_valid():
-            print("VALID")
             form.save()
         else:
-            print("INVALID")
+            print(form.errors)
 
     context = {"form": StepForm()}
     return render(request, "projects/step_form.html", context)
