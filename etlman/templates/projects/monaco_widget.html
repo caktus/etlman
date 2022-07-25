@@ -16,8 +16,16 @@
                 vertical: 'auto'
             }
         });
+
+
+        // TODO: this is all hardcoded, probably should change this
+        const form = document.getElementsByTagName('form')[0];
+        form.addEventListener("formdata", e => {
+            e.formData.append('script', editor.getModel().getValue());
+        });
+
     });
 </script>
 
-<!-- This is CSS very hackish, we need to change it -->
+<!-- TODO: This CSS is very hackish, we need to change it -->
 <div id="monaco_editor" style="height: 30em;"></div>
