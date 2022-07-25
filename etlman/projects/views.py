@@ -1,20 +1,26 @@
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 from etlman.projects.forms import StepForm
 from etlman.projects.models import Step
 
 
-def step_form_upsert_view(request, pk=None):
+def step_form_upsert_view(request, pk=None):  # GET
 
-    obj = Step.objects.get(id=pk) if pk else None
+    loadedForm = Step.objects.get(id=pk) if pk else None
 
     if request.method == "POST":
-        print(request.POST)
-        form = StepForm(request.POST, instance=obj)
+        form = StepForm(request.POST, instance=loadedForm)
         if form.is_valid():
-            form.save()
+            savedObject = form.save()
+            messages.add_message(request, messages.SUCCESS, "New step script added!")
+            return HttpResponseRedirect(
+                reverse("projects:step_form_upsert", args=[savedObject.id])
+            )
         else:
-            print(form.errors)
+            messages.add_message(request, messages.ERROR, form.errors)
 
-    context = {"form": StepForm()}
+    context = {"form": StepForm(instance=loadedForm)}
     return render(request, "projects/step_form.html", context)
