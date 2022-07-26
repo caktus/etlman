@@ -42,5 +42,5 @@ class TestEditScriptViewAndForm:
         assert sf.pipeline == form.data["pipeline"]
 
     def test_edit_script_view_status_code(self):
-        response = self.client.get(reverse("projects:step_form"))
+        response = self.client.get(reverse("projects:step_form_upsert"))
         assert response.status_code == HTTPStatus.OK.numerator
