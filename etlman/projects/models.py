@@ -44,31 +44,10 @@ class Pipeline(models.Model):
         return self.name
 
 
-class StringField(models.CharField):
-    """
-    PostgreSQL supports character varying fields without a length specifier:
-        * "If character varying is used without length specifier, the type accepts strings of any size."
-        * (https://www.postgresql.org/docs/12/datatype-character.html)
-    """
-
-    def __init__(self, *args, db_collation=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.db_collation = db_collation
-        self.validators = []
-
-    def _check_max_length_attribute(self, **kwargs):
-        """Disable max_length validation"""
-        return []
-
-    def db_type(self, connection):
-        """Always return varchar without a length specifier"""
-        return "varchar"
-
-
 class Step(models.Model):
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
-    script = StringField()
+    script = models.TextField()
     step_order = models.PositiveIntegerField()
 
     def __str__(self):

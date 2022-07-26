@@ -10,6 +10,6 @@ class MonacoEditorWidget(forms.Widget):
 class StepForm(forms.ModelForm):
     class Meta:
         model = Step
-        exclude = ["script"]
+        fields = "__all__"
 
-    script = forms.CharField(widget=MonacoEditorWidget)
+    script = forms.Field(widget=MonacoEditorWidget)

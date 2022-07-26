@@ -9,10 +9,9 @@ from etlman.projects.models import Step
 
 def step_form_upsert_view(request, pk=None):  # GET
 
-    loadedForm = Step.objects.get(id=pk) if pk else None
-
+    loadedObject = Step.objects.get(id=pk) if pk else None
     if request.method == "POST":
-        form = StepForm(request.POST, instance=loadedForm)
+        form = StepForm(request.POST, instance=None)
         if form.is_valid():
             savedObject = form.save()
             messages.add_message(request, messages.SUCCESS, "New step script added!")
@@ -22,5 +21,5 @@ def step_form_upsert_view(request, pk=None):  # GET
         else:
             messages.add_message(request, messages.ERROR, form.errors)
 
-    context = {"form": StepForm(instance=loadedForm)}
+    context = {"form": StepForm(instance=loadedObject)}
     return render(request, "projects/step_form.html", context)
