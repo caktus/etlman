@@ -9,17 +9,17 @@ from etlman.projects.models import Step
 
 def step_form_upsert_view(request, pk=None):  # GET
 
-    loadedObject = Step.objects.get(id=pk) if pk else None
+    loaded_obj = Step.objects.get(id=pk) if pk else None
     if request.method == "POST":
-        form = StepForm(request.POST, instance=None)
+        form = StepForm(request.POST, instance=loaded_obj)
         if form.is_valid():
-            savedObject = form.save()
-            messages.add_message(request, messages.SUCCESS, "New step script added!")
+            saved_obj = form.save()
+            messages.add_message(request, messages.SUCCESS, "New step script added succesfully!" if loaded_obj is None else "Step updated!")
             return HttpResponseRedirect(
-                reverse("projects:step_form_upsert", args=[savedObject.id])
+                reverse("projects:step_form_upsert", args=[saved_obj.id])
             )
         else:
             messages.add_message(request, messages.ERROR, form.errors)
 
-    context = {"form": StepForm(instance=loadedObject)}
+    context = {"form": StepForm(instance=loaded_obj)}
     return render(request, "projects/step_form.html", context)

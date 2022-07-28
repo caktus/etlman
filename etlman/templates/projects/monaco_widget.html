@@ -6,7 +6,7 @@
         // TODO: make it so it works with multiple fields on the same page (?)
         const editor = monaco.editor.create(document.getElementById("monaco_editor"), {
             theme: 'vs-dark',
-            model: monaco.editor.createModel("print('Hellow Django')", "python"),
+            model: monaco.editor.createModel(`{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`, "python"),
             wordWrap: 'on',
             automaticLayout: true,
             minimap: {
@@ -16,7 +16,6 @@
                 vertical: 'auto'
             }
         });
-
 
         // TODO: this is all hardcoded, probably should change this
         const form = document.getElementsByTagName('form')[0];
