@@ -11,5 +11,8 @@ class StepForm(forms.ModelForm):
     class Meta:
         model = Step
         fields = "__all__"
-
-    script = forms.Field(widget=MonacoEditorWidget)
+        # Customize widget for 'script' field:
+        # https://stackoverflow.com/a/22250192/166053
+        widgets = {
+            'script': MonacoEditorWidget(),
+        }
