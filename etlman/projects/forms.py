@@ -14,5 +14,5 @@ class StepForm(forms.ModelForm):
         # Customize widget for 'script' field:
         # https://stackoverflow.com/a/22250192/166053
         widgets = {
-            'script': MonacoEditorWidget(),
+            "script": MonacoEditorWidget(),
         }
