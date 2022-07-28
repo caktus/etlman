@@ -113,7 +113,7 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 ### Running tests with pytest
 
 ```
-(etlman-venv)$ pytest
+(etlman-venv)$ docker-compose -f local.yml run --rm django pytest
 ```
 
 ### Custom Bootstrap Compilation

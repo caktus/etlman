@@ -182,6 +182,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "etlman.users.context_processors.allauth_settings",
             ],
+            "debug": True,
         },
     }
 ]
