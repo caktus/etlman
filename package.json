@@ -24,12 +24,5 @@
   },
   "browserslist": [
     "last 2 versions"
-  ],
-  "scripts": {
-    "dev": "gulp",
-    "build": "gulp generate-assets"
-  },
-  "dependencies": {
-    "monaco-editor": "^0.33.0"
-  }
+  ]
 }

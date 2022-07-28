@@ -5,7 +5,7 @@ from etlman.projects.tests.factories import PipelineFactory, StepFactory
 
 
 @pytest.mark.django_db
-class TestEditScriptViewAndForm:
+class TestScriptForm:
     def test_django_form_fields(self):
         sf = StepFactory.build(pipeline=PipelineFactory())
         form = StepForm(
@@ -36,6 +36,7 @@ class TestEditScriptViewAndForm:
                 "step_order": sf.step_order,
             }
         )
-        assert form.errors["__all__"], [
+        assert (
             "Step with this Pipeline and Step order already exists."
-        ]
+            in form.errors["__all__"]
+        ), form.errors

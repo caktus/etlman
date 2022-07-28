@@ -1,15 +1,15 @@
 from http import HTTPStatus
 
 import pytest
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 
 from etlman.projects.forms import StepForm
-from etlman.projects.tests.factories import PipelineFactory, StepFactory
+from etlman.projects.tests.factories import PipelineFactory, ProjectFactory, StepFactory
 
 
 @pytest.mark.django_db
-class TestEditScriptViewAndForm(TestCase):
+class TestScriptView:
 
     client = Client()
 
@@ -21,21 +21,16 @@ class TestEditScriptViewAndForm(TestCase):
         # GET for existing object - 200 status code, content of script appears in HTML
         # POST for new object with valid data returns redirect, saved to DB
         sf = StepFactory.build(pipeline=PipelineFactory())
-        form = StepForm(
-            data={
-                "name": sf.name,
-                "script": sf.script,
-                "pipeline": sf.pipeline,
-                "step_order": sf.step_order,
-            }
-        )
-        assert form.is_valid(), form.errors
-        saved_object = form.save()
-        response = self.client.get(
-            reverse("projects:step_form_upsert", kwargs={"pk": saved_object.id})
-        )
+        data = {
+            "name": sf.name,
+            "script": sf.script,
+            "pipeline": sf.pipeline,
+            "step_order": sf.step_order,
+        }
+        response = self.client.post(reverse("projects:step_form_upsert"), data=data)
+
         assert response.status_code == HTTPStatus.OK.numerator
-        assert saved_object.script in str(response.content)
+        assert data["script"] in str(response.content)
 
     def test_update_step_in_db(self):
         # GET for existing object - 200 status code, content of script appears in HTML
@@ -52,11 +47,6 @@ class TestEditScriptViewAndForm(TestCase):
         )
         assert form.is_valid(), form.errors
         saved_object = form.save()
-        response = self.client.get(
-            reverse("projects:step_form_upsert", kwargs={"pk": saved_object.id})
-        )
-
-        assert response.status_code == HTTPStatus.OK.numerator
 
         response = self.client.post(
             reverse("projects:step_form_upsert", kwargs={"pk": saved_object.id}),
@@ -81,3 +71,16 @@ class TestEditScriptViewAndForm(TestCase):
         assert "Ensure this value is less than or equal to 2147483647." in str(
             response.content
         )
+
+    def test_view_new_step_creation(self):
+        sf = StepFactory(pipeline=PipelineFactory(project=ProjectFactory()))
+        data = {
+            "name": sf.name,
+            "script": sf.script,
+            "pipeline": sf.pipeline,
+            "step_order": sf.step_order,
+        }
+
+        response = self.client.post(reverse("projects:step_form_upsert"), data=data)
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert data["script"] in str(response.content)
