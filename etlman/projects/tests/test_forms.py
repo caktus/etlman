@@ -22,7 +22,6 @@ class TestScriptForm:
         assert sf.script == saved_obj.script
         assert sf.step_order == saved_obj.step_order
         assert sf.pipeline == saved_obj.pipeline
-        assert sf.name == str(saved_obj)
 
     def test_django_form_not_valid_duplicate_step_order(self):
         # https://adamj.eu/tech/2020/06/15/how-to-unit-test-a-django-form/#unit-tests
