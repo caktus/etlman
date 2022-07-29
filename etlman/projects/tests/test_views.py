@@ -9,6 +9,7 @@ from django.urls import reverse
 from etlman.projects.models import Step
 from etlman.projects.tests.factories import PipelineFactory, StepFactory
 from etlman.projects.views import MessagesEnum
+from etlman.users.models import User
 
 
 @pytest.mark.django_db
@@ -17,6 +18,8 @@ class TestScriptView:
     client = Client()
 
     def test_edit_script_view_status_code(self):
+        # TODO: start blocking users that are not authenticated
+        self.client.force_login(User.objects.get_or_create(username="testuser")[0])
         response = self.client.get(reverse("projects:step_form_upsert"))
         assert response.status_code == HTTPStatus.OK.numerator
 
