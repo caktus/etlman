@@ -46,8 +46,8 @@ class Pipeline(models.Model):
 
 class Step(models.Model):
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
-    name = models.CharField(max_length=256)  # file name
-    script = models.TextField()  # payload
+    name = models.CharField(max_length=256)
+    script = models.TextField()
     step_order = models.PositiveIntegerField()
 
     def __str__(self):
