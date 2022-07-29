@@ -112,7 +112,7 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 
 ### Running tests
 
-Run tets - docker-compose -f local.yml run --rm django pytest
+Run tests - `docker-compose -f local.yml run --rm django pytest`
 
 Check test coverage - `docker-compose -f local.yml run --rm django coverage report -m`
 
