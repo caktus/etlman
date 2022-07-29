@@ -1,6 +1,5 @@
 import pytest
 
-from etlman.projects.forms import StepForm
 from etlman.projects.tests.factories import (
     DataInterfaceFactory,
     PipelineFactory,
