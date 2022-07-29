@@ -24,9 +24,8 @@ class TestScriptView:
         assert response.status_code == HTTPStatus.OK.numerator
 
     def test_content_of_script_is_in_HTML(self):
-        # TODO: 132 right here is being discarded, and it is a work around, very hackish
-        step_model = StepFactory.build(id=132, pipeline=PipelineFactory())
-        response = self._get_response_from_post_data_to_view(step_model)
+        step_model = StepFactory.build(pipeline=PipelineFactory())
+        response = self.__get_response_from_post_data_to_view(step_model)
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert step_model.script in html
@@ -38,14 +37,13 @@ class TestScriptView:
         - POST for new object with valid data returns redirect, saved to DB
         - POST for existing object with valid data returns redirect, updates saved to DB
         """
-        # TODO: 132 right here is being discarded, and it is a work around, very hackish
-        step_model = StepFactory.build(id=132, pipeline=PipelineFactory())
-        self._get_response_from_post_data_to_view(step_model)
+        step_model = StepFactory.build(pipeline=PipelineFactory())
+        self.__get_response_from_post_data_to_view(step_model)
 
         NEW_SCRIPT_CONTENT = "I am a new script"
         step_model.script = NEW_SCRIPT_CONTENT
 
-        response = self._get_response_from_post_data_to_view(
+        response = self.__get_response_from_post_data_to_view(
             step_model, str(Step.objects.last().id)
         )
         html = str(response.content)
@@ -53,19 +51,6 @@ class TestScriptView:
         assert response.status_code == HTTPStatus.OK.numerator
         assert NEW_SCRIPT_CONTENT in html
         assert MessagesEnum.STEP_UPDATED in html
-
-    def _get_response_from_post_data_to_view(
-        self, step_model: Step, step_id: Optional[str] = None
-    ):
-        data = model_to_dict(step_model)
-        response = self.client.post(
-            reverse(
-                "projects:step_form_upsert", kwargs={"pk": step_id} if step_id else None
-            ),
-            data=data,
-            follow=True,
-        )
-        return response
 
     def test_content_of_error_in_HTML(self):
         """
@@ -88,10 +73,22 @@ class TestScriptView:
         )
 
     def test_view_new_step_creation(self):
-        # TODO: 132 right here is being discarded, and it is a work around, very hackish
-        step_model = StepFactory.build(id=132, pipeline=PipelineFactory())
-        response = self._get_response_from_post_data_to_view(step_model)
+        step_model = StepFactory.build(pipeline=PipelineFactory())
+        response = self.__get_response_from_post_data_to_view(step_model)
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert step_model.script in html
         assert MessagesEnum.STEP_CREATED in str(response.content)
+
+    def __get_response_from_post_data_to_view(
+        self, step_model: Step, step_id: Optional[str] = None
+    ):
+        data = {k: v for k, v in model_to_dict(step_model).items() if v is not None}
+        response = self.client.post(
+            reverse(
+                "projects:step_form_upsert", kwargs={"pk": step_id} if step_id else None
+            ),
+            data=data,
+            follow=True,
+        )
+        return response
