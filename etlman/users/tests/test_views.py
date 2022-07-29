@@ -11,11 +11,7 @@ from django.urls import reverse
 from etlman.users.forms import UserAdminChangeForm
 from etlman.users.models import User
 from etlman.users.tests.factories import UserFactory
-from etlman.users.views import (
-    UserRedirectView,
-    UserUpdateView,
-    user_detail_view,
-)
+from etlman.users.views import UserRedirectView, UserUpdateView, user_detail_view
 
 pytestmark = pytest.mark.django_db
 
