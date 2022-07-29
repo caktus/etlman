@@ -116,6 +116,8 @@ Run tets - docker-compose -f local.yml run --rm django pytest
 
 Check test coverage - `docker-compose -f local.yml run --rm django coverage report -m`
 
+Run tests and display coverage `docker-compose run --rm django bash -c "coverage run -m pytest && coverage report -m"`
+
 ### Custom Bootstrap Compilation
 
 The generated CSS is set up with automatic Bootstrap recompilation with variables of your choice.
