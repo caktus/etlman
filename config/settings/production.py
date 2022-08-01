@@ -123,22 +123,6 @@ INSTALLED_APPS += ["anymail"]  # noqa F405
 EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"
 ANYMAIL = {}
 
-# django-compressor
-# ------------------------------------------------------------------------------
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_ENABLED
-COMPRESS_ENABLED = env.bool("COMPRESS_ENABLED", default=True)
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_URL
-COMPRESS_URL = STATIC_URL  # noqa F405
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_OFFLINE
-COMPRESS_OFFLINE = True  # Offline compression is required when using Whitenoise
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_FILTERS
-COMPRESS_FILTERS = {
-    "css": [
-        "compressor.filters.css_default.CssAbsoluteFilter",
-        "compressor.filters.cssmin.rCSSMinFilter",
-    ],
-    "js": ["compressor.filters.jsmin.JSMinFilter"],
-}
 
 # LOGGING
 # ------------------------------------------------------------------------------

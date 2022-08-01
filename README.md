@@ -62,6 +62,8 @@ If you are unable to run Postgres locally (if you develop on an M1), Docker is a
 
 **Note**: Building the stack can take a while
 
+See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+
 #### Run the stack
 
 To run the stack
@@ -108,8 +110,19 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 (etlman-venv)$ open htmlcov/index.html
 ```
 
-### Running tests with pytest
+### Running tests
 
-```
-(etlman-venv)$ pytest
-```
+Run tests - `docker-compose -f local.yml run --rm django pytest`
+
+Check test coverage - `docker-compose -f local.yml run --rm django coverage report -m`
+
+Run tests and display coverage `docker-compose run --rm django bash -c "coverage run -m pytest && coverage report -m"`
+
+### Custom Bootstrap Compilation
+
+The generated CSS is set up with automatic Bootstrap recompilation with variables of your choice.
+Bootstrap v5 is installed using npm and customised by tweaking your variables in `static/sass/custom_bootstrap_vars`.
+
+You can find a list of available variables [in the bootstrap source](https://github.com/twbs/bootstrap/blob/main/scss/_variables.scss), or get explanations on them in the [Bootstrap docs](https://getbootstrap.com/docs/5.1/customize/sass/).
+
+Bootstrap's javascript as well as its dependencies is concatenated into a single file: `static/js/vendors.js`.

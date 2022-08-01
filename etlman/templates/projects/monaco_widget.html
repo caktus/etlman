@@ -1,0 +1,30 @@
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs/loader.js"></script>
+<script>
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.22.3/min/vs' } });
+    require(['vs/editor/editor.main'], () => {
+        const editor = monaco.editor.create(document.getElementById("id_{{ widget.name }}"), {
+            theme: 'vs-dark',
+            model: monaco.editor.createModel(`{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`, "python"),
+            wordWrap: 'on',
+            automaticLayout: true,
+            minimap: {
+                enabled: false
+            },
+            scrollbar: {
+                vertical: 'auto'
+            }
+        });
+
+        const forms = document.getElementsByTagName('form');
+        for (let index = 0; index < forms.length; index++) {
+            const element = forms[index];
+            element.addEventListener("formdata", e => {
+                e.formData.append('{{ widget.name }}', editor.getModel().getValue());
+            });
+        }
+    });
+</script>
+
+
+<!-- TODO: This CSS is very hackish, we *may* want to change it -->
+<div id="id_{{ widget.name }}" name="{{ widget.name }}" style="height: 30em;" class="is-invalid"></div>
