@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+Let's add a new project, USER_NAME_HERE.
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+        <div class="controls">
+          <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+      </div>
+</form>
+{% endblock content %}
