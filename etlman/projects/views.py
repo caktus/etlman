@@ -1,7 +1,6 @@
-from ipaddress import collapse_addresses
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 
 from etlman.projects.forms import ProjectForm, StepForm
@@ -35,6 +34,11 @@ def step_form_upsert_view(request, pk=None):
 
 
 def new_project_wizard_view(request):
+    # Get username
+    username = None
+    if request.user.is_authenticated:
+        username = request.user.username
+    # Form functionality
     if request.method == "POST":
         form = ProjectForm(request.POST)
         collaborator_object = Collaborator.objects.create(
@@ -46,5 +50,5 @@ def new_project_wizard_view(request):
             form.save()
         return HttpResponseRedirect(reverse("home"))
     form = ProjectForm()
-    context = {"form": form}
+    context = {"form": form, "username": username}
     return render(request, "projects/add_project_wizard.html", context)
