@@ -19,8 +19,6 @@ class StepForm(forms.ModelForm):
 
 
 class ProjectForm(forms.ModelForm):
-
     class Meta:
         model = Project
-        #fields = '__all__'
-        fields = ['name', 'description']
+        fields = ["name", "description"]

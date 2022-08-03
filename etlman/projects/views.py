@@ -38,14 +38,17 @@ def new_project_wizard_view(request):
     username = None
     if request.user.is_authenticated:
         username = request.user.username
+
     # Form functionality
     if request.method == "POST":
         form = ProjectForm(request.POST)
-        collaborator_object = Collaborator.objects.create(
-            user=request.user, role="admin"
+        # New projects require the logged user as collaborators
+        # Here we instanantiate Collaborator and and assign the
+        # current user as the "collaborators".
+        collaborator_user_object = Collaborator.objects.create(
+            user=request.user, role="admin", project="???"
         )
-        form.data.user = collaborator_object
-        print(form.data)
+        form.data.user = collaborator_user_object
         if form.is_valid():
             form.save()
         return HttpResponseRedirect(reverse("home"))
