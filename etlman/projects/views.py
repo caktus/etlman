@@ -1,3 +1,5 @@
+from denied.authorizers import any_authorized
+from denied.decorators import authorize
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -5,7 +7,6 @@ from django.urls import reverse
 
 from etlman.projects.forms import ProjectForm, StepForm
 from etlman.projects.models import Collaborator, Step
-from etlman.projects.tests.factories import ProjectFactory
 
 
 class MessagesEnum:
@@ -13,6 +14,7 @@ class MessagesEnum:
     STEP_CREATED = "New step script added succesfully"
 
 
+@authorize(any_authorized)
 def step_form_upsert_view(request, pk=None):
     loaded_obj = Step.objects.get(id=pk) if pk else None
     if request.method == "POST":
@@ -28,32 +30,28 @@ def step_form_upsert_view(request, pk=None):
             return HttpResponseRedirect(
                 reverse("projects:step_form_upsert", args=[saved_obj.id])
             )
-    else:  # GET
+    else:  # GET request
         form = StepForm(instance=loaded_obj)
     context = {"form": form}
     return render(request, "projects/step_form.html", context)
 
 
+@authorize(any_authorized)  # any logged in user
 def new_project_wizard_view(request):
-    # Get username
-    username = None
-    if request.user.is_authenticated:
-        username = request.user.username
+    username = request.user.username
 
     # Form functionality
     if request.method == "POST":
         form = ProjectForm(request.POST)
-        # New projects require the logged user as collaborators
-        # Here we instanantiate Collaborator and and assign the
-        # current user as the "collaborators".
-        collaborator_user_object = Collaborator.objects.create(
-            user=request.user,
-            role="admin",
-            project=ProjectFactory(),  # Not sure how to do this
-        )
-        form.data.user = collaborator_user_object
         if form.is_valid():
-            form.save()
+            saved_project = form.save()
+            # New projects require the logged user as a collaborator
+            # Here we assigned the current user as the "collaborator".
+            Collaborator.objects.create(
+                user=request.user,
+                role="admin",
+                project=saved_project,
+            )
         return HttpResponseRedirect(reverse("home"))
     form = ProjectForm()
     context = {"form": form, "username": username}
