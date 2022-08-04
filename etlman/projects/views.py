@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from etlman.projects.forms import ProjectForm, StepForm
 from etlman.projects.models import Collaborator, Step
+from etlman.projects.tests.factories import ProjectFactory
 from etlman.users.models import User
 
 
@@ -47,7 +48,7 @@ def new_project_wizard_view(request):
         # Here we instanantiate Collaborator and and assign the
         # current user as the "collaborators".
         collaborator_user_object = Collaborator.objects.create(
-            user=User.objects.get(request.user), role="admin"  # Not sure how to do this
+            user=request.user, role="admin", project=ProjectFactory()  # Not sure how to do this
         )
         form.data.user = collaborator_user_object
         if form.is_valid():

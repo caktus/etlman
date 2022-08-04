@@ -109,7 +109,10 @@ class TestNewProjectView:
         assert response.status_code == HTTPStatus.OK.numerator
 
     def test_add_project_wizard_post(self):
+        self.client.force_login(User.objects.get_or_create(username="testuser")[0])
         response = self.client.post(
-            reverse("projects:add_project_wizard"), data=model_to_dict(ProjectFactory())
+            reverse("projects:add_project_wizard"),
+            data=model_to_dict(ProjectFactory()),
+            follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
