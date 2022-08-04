@@ -47,7 +47,7 @@ def new_project_wizard_view(request):
         # Here we instanantiate Collaborator and and assign the
         # current user as the "collaborators".
         collaborator_user_object = Collaborator.objects.create(
-            user=User.objects.get(request.user), role="admin"   # Not sure how to do this
+            user=User.objects.get(request.user), role="admin"  # Not sure how to do this
         )
         form.data.user = collaborator_user_object
         if form.is_valid():
