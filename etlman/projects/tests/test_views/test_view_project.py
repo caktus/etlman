@@ -2,14 +2,14 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
-
-from etlman.projects.models import Project
-from etlman.projects.tests.factories import ProjectFactory
 from util import (
     get_anon_client,
     get_authenticated_client,
     get_authenticated_client_and_test_user,
 )
+
+from etlman.projects.models import Project
+from etlman.projects.tests.factories import ProjectFactory
 
 
 @pytest.mark.django_db

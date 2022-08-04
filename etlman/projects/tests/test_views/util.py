@@ -1,17 +1,6 @@
-from http import HTTPStatus
-from random import randint
-from typing import Optional
-
-import pytest
-from django.forms import model_to_dict
 from django.test import Client
-from django.urls import reverse
 
-from etlman.projects.models import Project, Step
-from etlman.projects.tests.factories import PipelineFactory, ProjectFactory, StepFactory
-from etlman.projects.views import MessagesEnum
 from etlman.users.models import User
-
 
 
 def get_anon_client():

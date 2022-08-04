@@ -3,9 +3,9 @@ from random import randint
 
 import pytest
 from django.urls import reverse
+from util import get_authenticated_client
 
 from etlman.projects.tests.factories import ProjectFactory
-from util import get_authenticated_client
 
 
 @pytest.mark.django_db
