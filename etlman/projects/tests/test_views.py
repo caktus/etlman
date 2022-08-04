@@ -7,7 +7,7 @@ from django.test import Client
 from django.urls import reverse
 
 from etlman.projects.models import Step
-from etlman.projects.tests.factories import PipelineFactory, StepFactory
+from etlman.projects.tests.factories import PipelineFactory, ProjectFactory, StepFactory
 from etlman.projects.views import MessagesEnum
 from etlman.users.models import User
 
@@ -92,3 +92,24 @@ class TestScriptView:
             follow=True,
         )
         return response
+
+
+@pytest.mark.django_db
+class TestNewProjectView:
+
+    client = Client()
+
+    def test_add_project_wizard_status_code_with_anon(self):
+        response = self.client.get(reverse("projects:add_project_wizard"))
+        assert response.status_code == HTTPStatus.OK.numerator
+
+    def test_add_project_wizard_status_code_with_user(self):
+        self.client.force_login(User.objects.get_or_create(username="testuser")[0])
+        response = self.client.get(reverse("projects:add_project_wizard"))
+        assert response.status_code == HTTPStatus.OK.numerator
+
+    def test_add_project_wizard_post(self):
+        response = self.client.post(
+            reverse("projects:add_project_wizard"), data=model_to_dict(ProjectFactory())
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
