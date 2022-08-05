@@ -92,3 +92,12 @@ class TestScriptView:
             follow=True,
         )
         return response
+
+
+@pytest.mark.django_db
+def test_pipeline_list_view():
+    client = Client()
+    response = client.get(reverse("projects:pipeline_list"), follow=True)
+    assert response.status_code == HTTPStatus.OK.numerator
+    html = str(response.content)
+    assert "Add Pipeline" in html
