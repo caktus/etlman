@@ -68,4 +68,5 @@ class TestProjectDropdownList:
 
         response = client1.get(reverse("home"), follow=True)
         html = str(response.content)
+        assert "Add a project" in html, html
         assert all([project_data.name in html for project_data in project_list])
