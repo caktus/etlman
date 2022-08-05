@@ -95,9 +95,42 @@ class TestScriptView:
 
 
 @pytest.mark.django_db
-def test_pipeline_list_view():
+class TestHTMLInViews:
+
     client = Client()
-    response = client.get(reverse("projects:pipeline_list"), follow=True)
-    assert response.status_code == HTTPStatus.OK.numerator
-    html = str(response.content)
-    assert "Add Pipeline" in html
+
+    def test_pipeline_list_view_button(self):
+        response = self.client.get(reverse("projects:pipeline_list"), follow=True)
+        html = str(response.content)
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert "Add Pipeline" in html
+
+    def test_pipeline_table_headers_and_tags_in_html(self):
+        response = self.client.get(reverse("projects:pipeline_list"), follow=True)
+        html = str(response.content)
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert "Name" in html
+        assert "Actions" in html
+        assert "<thead>" in html
+        assert "<table" in html
+
+    def test_pipeline_table_content_in_html_one_pipeline(self):
+        pipeline = PipelineFactory()
+        response = self.client.get(reverse("projects:pipeline_list"), follow=True)
+        html = str(response.content)
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert pipeline.name in html
+        assert pipeline.input.interface_type in html
+
+    def test_pipeline_table_content_in_html_no_input(self):
+        pipeline = PipelineFactory(input=None)
+        no_data_interface_msg = "No data interface attached"
+        response = self.client.get(reverse("projects:pipeline_list"), follow=True)
+        html = str(response.content)
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert pipeline.name in html
+        assert no_data_interface_msg in html
