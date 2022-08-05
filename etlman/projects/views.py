@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from etlman.projects.forms import StepForm
-from etlman.projects.models import DataInterface, Pipeline, Step
+from etlman.projects.models import Pipeline, Step
 
 
 class MessagesEnum:

@@ -22,7 +22,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class DataInterfaceAdmin(admin.ModelAdmin):
     list_display = ["name", "interface_type"]
-    #list_filter = ("pipeline__name",)
+    # list_filter = ("pipeline__name",)
 
 
 class PipelineAdmin(admin.ModelAdmin):
