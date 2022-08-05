@@ -27,7 +27,6 @@ class DataInterface(models.Model):
 
     INTERFACE_TYPE_CHOICES = [("database", "Database")]
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     interface_type = models.CharField(max_length=32, choices=INTERFACE_TYPE_CHOICES)
     connection_string = models.TextField()
@@ -39,6 +38,7 @@ class DataInterface(models.Model):
 class Pipeline(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
+    input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from etlman.projects.forms import StepForm
-from etlman.projects.models import Step
+from etlman.projects.models import DataInterface, Pipeline, Step
 
 
 class MessagesEnum:
@@ -31,3 +31,9 @@ def step_form_upsert_view(request, pk=None):
         form = StepForm(instance=loaded_obj)
     context = {"form": form}
     return render(request, "projects/step_form.html", context)
+
+
+def pipeline_list(request):
+    pipelines = Pipeline.objects.all()
+    context = {"pipeline_list": pipelines}
+    return render(request, "projects/pipeline_list.html", context)

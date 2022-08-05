@@ -16,21 +16,19 @@ class StepInline(admin.TabularInline):
 
 
 class ProjectAdmin(admin.ModelAdmin):
-    inlines = [CollaboratorInline, DataInterfaceInLine]
+    inlines = [CollaboratorInline]
     list_display = ["name", "description"]
 
 
 class DataInterfaceAdmin(admin.ModelAdmin):
-    list_display = ["name", "project", "interface_type"]
-    list_filter = ("project__name",)
+    list_display = ["name", "interface_type"]
+    #list_filter = ("pipeline__name",)
 
 
 class PipelineAdmin(admin.ModelAdmin):
     list_display = ["name", "project"]
     list_filter = ("project__name",)
-    inlines = [
-        StepInline,
-    ]
+    inlines = [StepInline]
 
 
 class StepAdmin(admin.ModelAdmin):
