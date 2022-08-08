@@ -15,7 +15,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 class CollaboratorFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(ProjectFactory)
     user = factory.SubFactory(UserFactory)
-    role = factory.Faker("bs")
+    role = factory.Faker("pystr")
 
     class Meta:
         model = models.Collaborator

@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Step
+from .models import Project, Step
 
 
 class MonacoEditorWidget(forms.Widget):
@@ -16,3 +16,9 @@ class StepForm(forms.ModelForm):
         widgets = {
             "script": MonacoEditorWidget(),
         }
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ["name", "description"]
