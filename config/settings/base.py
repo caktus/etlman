@@ -182,7 +182,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "etlman.users.context_processors.allauth_settings",
-                "etlman.projects.context_processor.currrent_user_projects",
+                "etlman.projects.context_processor.current_user_projects",
             ],
             "debug": True,
         },
