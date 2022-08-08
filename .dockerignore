@@ -8,3 +8,6 @@
 .readthedocs.yml
 .travis.yml
 venv
+node_modules/
+.direnv/
+.git/
