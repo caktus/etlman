@@ -12,7 +12,7 @@ from etlman.projects.tests.factories import ProjectFactory
 class TestProjectDropdownList:
     def test_dropdown_empty(self):
         client = get_authenticated_client()
-        response = client.get(reverse("home"), follow=True)
+        response = client.get(reverse("home"))
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
@@ -22,11 +22,10 @@ class TestProjectDropdownList:
         project_data = ProjectFactory.build()
         data = {"name": project_data.name, "description": project_data.description}
         response = client.post(
-            reverse("projects:add_project_wizard"),
+            reverse("projects:new_project"),
             data=data,
-            follow=True,
         )
-        response = client.get(reverse("home"), follow=True)
+        response = client.get(reverse("home"))
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
@@ -38,11 +37,10 @@ class TestProjectDropdownList:
         for project_data in project_list:
             data = {"name": project_data.name, "description": project_data.description}
             response = client.post(
-                reverse("projects:add_project_wizard"),
+                reverse("projects:new_project"),
                 data=data,
-                follow=True,
             )
-        response = client.get(reverse("home"), follow=True)
+        response = client.get(reverse("home"))
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
@@ -54,19 +52,18 @@ class TestProjectDropdownList:
         for project_data in project_list:
             data = {"name": project_data.name, "description": project_data.description}
             response = client1.post(
-                reverse("projects:add_project_wizard"),
+                reverse("projects:new_project"),
                 data=data,
-                follow=True,
             )
 
         client2 = get_authenticated_client("anotheruser")
-        response = client2.get(reverse("home"), follow=True)
+        response = client2.get(reverse("home"))
         html = str(response.content)
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
         assert not any([project_data.name in html for project_data in project_list])
 
-        response = client1.get(reverse("home"), follow=True)
+        response = client1.get(reverse("home"))
         html = str(response.content)
         assert "Add a project" in html, html
         assert all([project_data.name in html for project_data in project_list])

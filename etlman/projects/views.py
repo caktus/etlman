@@ -12,6 +12,7 @@ from etlman.projects.models import Collaborator, Step
 class MessagesEnum:
     STEP_UPDATED = "Step updated"
     STEP_CREATED = "New step script added succesfully"
+    PROJECT_CREATED = "Project {name} added successfully"
 
 
 @authorize(any_authorized)
@@ -37,7 +38,7 @@ def step_form_upsert_view(request, pk=None):
 
 
 @authorize(any_authorized)  # any logged in user
-def new_project_wizard_view(request):
+def new_project_view(request):
     username = request.user.username
 
     # Form functionality
@@ -52,7 +53,13 @@ def new_project_wizard_view(request):
                 role="admin",
                 project=saved_project,
             )
-        return HttpResponseRedirect(reverse("home"))
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                MessagesEnum.PROJECT_CREATED.format(name=saved_project.name),
+            )
+            return HttpResponseRedirect(reverse("home"))
+
     form = ProjectForm()
     context = {"form": form, "username": username}
-    return render(request, "projects/add_project_wizard.html", context)
+    return render(request, "projects/new_project.html", context)

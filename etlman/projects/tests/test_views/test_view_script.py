@@ -17,6 +17,8 @@ class TestScriptView:
     def test_edit_script_view_status_code_forbidden(self):
         client = get_anon_client()
         response = client.get(reverse("projects:step_form_upsert"), follow=True)
+        assert len(response.redirect_chain) == 1
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Forgot Password" in str(response.content)
 
@@ -31,22 +33,19 @@ class TestScriptView:
         step_model = StepFactory.build(pipeline=PipelineFactory())
         response = self.get_response_from_post_data_to_view(client, step_model)
         html = str(response.content)
-        assert response.status_code == HTTPStatus.OK.numerator, html
-        assert step_model.script in html
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert step_model.script in html, html
         assert MessagesEnum.STEP_CREATED in html
 
     def test_update_step_in_db(self):
-        """
-        - GET for existing object - 200 status code, content of script appears in HTML
-        - POST for new object with valid data returns redirect, saved to DB
-        - POST for existing object with valid data returns redirect, updates saved to DB
-        """
         client = get_authenticated_client()
         step_model = StepFactory.build(pipeline=PipelineFactory())
         response = self.get_response_from_post_data_to_view(client, step_model)
         html = str(response.content)
-
-        assert Step.objects.count() == 1, html
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert Step.objects.count() == 1, Step.objects.all()
         NEW_SCRIPT_CONTENT = "I am a new script"
         step_model.script = NEW_SCRIPT_CONTENT
 
@@ -54,15 +53,12 @@ class TestScriptView:
             client, step_model, str(Step.objects.get().id)
         )
         html = str(response.content)
-
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
         assert NEW_SCRIPT_CONTENT in html
         assert MessagesEnum.STEP_UPDATED in html
 
     def test_content_of_error_in_HTML(self):
-        """
-        - POST with invalid data - error appears in HTML
-        """
         client = get_authenticated_client()
         MAX_STEP_ORDER_SIZE = 2147483647
         response = client.post(
@@ -84,6 +80,7 @@ class TestScriptView:
         step_model = StepFactory.build(pipeline=PipelineFactory())
         response = self.get_response_from_post_data_to_view(client, step_model)
         html = str(response.content)
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
         assert step_model.script in html
         assert MessagesEnum.STEP_CREATED in str(response.content)

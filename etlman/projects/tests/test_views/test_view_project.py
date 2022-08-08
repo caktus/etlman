@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
+from etlman.projects.views import MessagesEnum
 from util import (
     get_anon_client,
     get_authenticated_client,
@@ -14,25 +15,32 @@ from etlman.projects.tests.factories import ProjectFactory
 
 @pytest.mark.django_db
 class TestNewProjectView:
-    def test_add_project_wizard_status_code_with_anon(self):
+    def test_new_project_status_code_with_anon(self):
         client = get_anon_client()
-        response = client.get(reverse("projects:add_project_wizard"), follow=True)
+        response = client.get(reverse("projects:new_project"), follow=True)
+        assert len(response.redirect_chain) == 1
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
 
-    def test_add_project_wizard_status_code_with_user(self):
+    def test_new_project_status_code_with_user(self):
         client = get_authenticated_client()
-        response = client.get(reverse("projects:add_project_wizard"))
+        response = client.get(reverse("projects:new_project"), follow=True)
+        assert not response.redirect_chain
         assert response.status_code == HTTPStatus.OK.numerator
 
-    def test_add_project_wizard_post_with_added_collaborator(self):
+    def test_new_project_post_with_added_collaborator(self):
         client, user = get_authenticated_client_and_test_user()
         project_data = ProjectFactory.build()
         data = {"name": project_data.name, "description": project_data.description}
         response = client.post(
-            reverse("projects:add_project_wizard"),
+            reverse("projects:new_project"),
             data=data,
             follow=True,
         )
+        html = str(response.content)
+        assert len(response.redirect_chain) == 1
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
         assert Project.objects.count() == 1, Project.objects.all()
         assert Project.objects.get().collaborator_set.get().user == user
+        assert MessagesEnum.PROJECT_CREATED.format(name=project_data.name) in html
