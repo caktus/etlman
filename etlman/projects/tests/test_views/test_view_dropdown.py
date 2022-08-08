@@ -4,7 +4,9 @@ from random import randint
 import pytest
 from django.urls import reverse
 
-from etlman.projects.tests.factories import ProjectFactory
+from etlman.projects.models import Collaborator
+from etlman.projects.tests.factories import CollaboratorFactory, ProjectFactory
+from etlman.users.models import User
 
 
 @pytest.mark.django_db
@@ -29,7 +31,7 @@ class TestProjectDropdownList:
         assert project_data.name in html
 
     def test_dropdown_with_many_projects(self, nonadmin_client):
-        project_list = ProjectFactory.build_batch(randint(1, 10))
+        project_list = ProjectFactory.build_batch(randint(2, 5))
         for project_data in project_list:
             data = {"name": project_data.name, "description": project_data.description}
             response = nonadmin_client.post(
@@ -42,24 +44,23 @@ class TestProjectDropdownList:
         assert "Add a project" in html, html
         assert all([project_data.name in html for project_data in project_list])
 
-    # def test_dropdown_with_many_projects_without_other_user_projects(self, nonadmin_client):
-    #     client1 = get_authenticated_client("testuser")
-    #     project_list = ProjectFactory.build_batch(randint(1, 10))
-    #     for project_data in project_list:
-    #         data = {"name": project_data.name, "description": project_data.description}
-    #         response = client1.post(
-    #             reverse("projects:new_project"),
-    #             data=data,
-    #         )
+    def test_dropdown_context_processor(self, nonadmin_client, nonadmin_user):
+        saved_project = ProjectFactory.create()
+        CollaboratorFactory.create(project=saved_project, user=nonadmin_user)
+        assert Collaborator.objects.count() > 0
 
-    #     client2 = get_authenticated_client("anotheruser")
-    #     response = client2.get(reverse("home"))
-    #     html = str(response.content)
-    #     assert response.status_code == HTTPStatus.OK.numerator
-    #     assert "Add a project" in html, html
-    #     assert not any([project_data.name in html for project_data in project_list])
+        response = nonadmin_client.get(reverse("home"))
+        context = response.context
+        project_list = context["current_user_projects"]
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert saved_project in project_list, context
 
-    #     response = client1.get(reverse("home"))
-    #     html = str(response.content)
-    #     assert "Add a project" in html, html
-    #     assert all([project_data.name in html for project_data in project_list])
+        nonadmin_client.force_login(
+            User.objects.create(username="new_test_user", password="foobar")
+        )
+
+        response = nonadmin_client.get(reverse("home"))
+        context = response.context
+        project_list = context["current_user_projects"]
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert saved_project not in project_list, context["user"]
