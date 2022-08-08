@@ -2,10 +2,10 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
-from etlman.projects.views import MessagesEnum
 
 from etlman.projects.models import Project
 from etlman.projects.tests.factories import ProjectFactory
+from etlman.projects.views import MessagesEnum
 
 
 @pytest.mark.django_db

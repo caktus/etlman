@@ -1,6 +1,8 @@
 import pytest
 from django.test.client import Client
+
 from etlman.users.models import User
+
 
 # Adapted from pytest 'admin_user' and 'admin_client':
 # https://github.com/pytest-dev/pytest-django/blob/fba51531f067a985ec6b6be4aec9a2ed5766d69c/pytest_django/fixtures.py#L406-L447
