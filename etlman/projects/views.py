@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from etlman.projects.forms import ProjectForm, StepForm
-from etlman.projects.models import Collaborator, Step, Pipeline
+from etlman.projects.models import Collaborator, Pipeline, Step
 
 
 class MessagesEnum:
@@ -37,13 +37,14 @@ def step_form_upsert_view(request, pk=None):
     return render(request, "projects/step_form.html", context)
 
 
+@authorize(any_authorized)
 def pipeline_list(request):
     pipelines = Pipeline.objects.all()
     context = {"pipeline_list": pipelines}
     return render(request, "projects/pipeline_list.html", context)
 
 
-@authorize(any_authorized)  # any logged in user
+@authorize(any_authorized)
 def new_project_view(request):
     username = request.user.username
 

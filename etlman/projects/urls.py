@@ -1,6 +1,6 @@
 from django.urls import path
 
-from etlman.projects.views import pipeline_list, new_project_view, step_form_upsert_view
+from etlman.projects.views import new_project_view, pipeline_list, step_form_upsert_view
 
 app_name = "projects"
 urlpatterns = [
