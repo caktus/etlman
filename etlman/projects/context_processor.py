@@ -1,7 +1,7 @@
 from etlman.projects.models import Project
 
 
-def currrent_user_projects(request):
+def current_user_projects(request):
     """
     Filters all projects and returns those that belong
     to the current user.
