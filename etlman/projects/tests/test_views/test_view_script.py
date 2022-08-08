@@ -5,27 +5,11 @@ import pytest
 from django.forms import model_to_dict
 from django.test import Client
 from django.urls import reverse
+from util import get_anon_client, get_authenticated_client
 
-from etlman.projects.models import Project, Step
-from etlman.projects.tests.factories import PipelineFactory, ProjectFactory, StepFactory
+from etlman.projects.models import Step
+from etlman.projects.tests.factories import PipelineFactory, StepFactory
 from etlman.projects.views import MessagesEnum
-from etlman.users.models import User
-
-
-def get_anon_client():
-    return Client()
-
-
-def get_authenticated_client():
-    client, _ = get_authenticated_client_and_test_user()
-    return client
-
-
-def get_authenticated_client_and_test_user():
-    client = get_anon_client()
-    user, _ = User.objects.get_or_create(username="testuser")
-    client.force_login(user)
-    return client, user
 
 
 @pytest.mark.django_db
@@ -116,29 +100,3 @@ class TestScriptView:
             follow=True,
         )
         return response
-
-
-@pytest.mark.django_db
-class TestNewProjectView:
-    def test_add_project_wizard_status_code_with_anon(self):
-        client = get_anon_client()
-        response = client.get(reverse("projects:add_project_wizard"), follow=True)
-        assert response.status_code == HTTPStatus.OK.numerator
-
-    def test_add_project_wizard_status_code_with_user(self):
-        client = get_authenticated_client()
-        response = client.get(reverse("projects:add_project_wizard"))
-        assert response.status_code == HTTPStatus.OK.numerator
-
-    def test_add_project_wizard_post_with_added_collaborator(self):
-        client, user = get_authenticated_client_and_test_user()
-        project_data = ProjectFactory.build()
-        data = {"name": project_data.name, "description": project_data.description}
-        response = client.post(
-            reverse("projects:add_project_wizard"),
-            data=data,
-            follow=True,
-        )
-        assert response.status_code == HTTPStatus.OK.numerator
-        assert Project.objects.count() == 1, Project.objects.all()
-        assert Project.objects.get().collaborator_set.get().user == user
