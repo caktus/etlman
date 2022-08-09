@@ -22,6 +22,7 @@ class CollaboratorFactory(factory.django.DjangoModelFactory):
 
 
 class DataInterfaceFactory(factory.django.DjangoModelFactory):
+    project = factory.SubFactory(ProjectFactory)
     name = factory.Faker("company")
     interface_type = factory.Faker("company_suffix")
     connection_string = factory.Faker("sentence")

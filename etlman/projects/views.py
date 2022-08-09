@@ -2,11 +2,12 @@ from denied.authorizers import any_authorized
 from denied.decorators import authorize
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
+from etlman.projects.authorizers import user_is_authenticated, user_is_project_collaborator
 from etlman.projects.forms import ProjectForm, StepForm
-from etlman.projects.models import Collaborator, Pipeline, Step
+from etlman.projects.models import Collaborator, Pipeline, Project, Step
 
 
 class MessagesEnum:
@@ -15,7 +16,7 @@ class MessagesEnum:
     PROJECT_CREATED = "Project {name} added successfully"
 
 
-@authorize(any_authorized)
+@authorize(user_is_authenticated)
 def step_form_upsert_view(request, pk=None):
     loaded_obj = Step.objects.get(id=pk) if pk else None
     if request.method == "POST":
@@ -37,14 +38,15 @@ def step_form_upsert_view(request, pk=None):
     return render(request, "projects/step_form.html", context)
 
 
-@authorize(any_authorized)
-def pipeline_list(request):
-    pipelines = Pipeline.objects.all()
-    context = {"pipeline_list": pipelines}
+@authorize(user_is_project_collaborator)
+def pipeline_list(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    pipelines = Pipeline.objects.filter(project=project)
+    context = {"pipeline_list": pipelines, "current_project": project}
     return render(request, "projects/pipeline_list.html", context)
 
 
-@authorize(any_authorized)
+@authorize(user_is_authenticated)
 def new_project_view(request):
     username = request.user.username
 
@@ -65,7 +67,9 @@ def new_project_view(request):
                 messages.SUCCESS,
                 MessagesEnum.PROJECT_CREATED.format(name=saved_project.name),
             )
-            return HttpResponseRedirect(reverse("home"))
+            return HttpResponseRedirect(
+                reverse("projects:pipeline_list", args=(saved_project.pk,))
+            )
 
     form = ProjectForm()
     context = {"form": form, "username": username}
