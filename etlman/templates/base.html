@@ -62,11 +62,11 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Projects
+                {% if current_project %}{{ current_project.name }}{% else %}Projects{% endif %}
               </a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                 {% for project in current_user_projects %}
-                <li><a class="dropdown-item" href="#">{{ project.name }}</a></li>
+                <li><a class="dropdown-item {% if current_project.pk == project.pk %}active{% endif %}" href="{% url 'projects:pipeline_list' project.pk %}">{{ project.name }}</a></li>
                 {% endfor %}
                 <li>
                   <hr class="dropdown-divider">
