@@ -6,7 +6,7 @@ from etlman.users.models import User
 class Project(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
-    collaborators = models.ManyToManyField(User, through="Collaborator")
+    collaborators = models.ManyToManyField(User, through="Collaborator", related_name="projects")
 
     def __str__(self):
         return self.name
@@ -27,6 +27,7 @@ class DataInterface(models.Model):
 
     INTERFACE_TYPE_CHOICES = [("database", "Database")]
 
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     interface_type = models.CharField(max_length=32, choices=INTERFACE_TYPE_CHOICES)
     connection_string = models.TextField()
