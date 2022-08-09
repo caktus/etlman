@@ -1,11 +1,13 @@
-from denied.authorizers import any_authorized
 from denied.decorators import authorize
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from etlman.projects.authorizers import user_is_authenticated, user_is_project_collaborator
+from etlman.projects.authorizers import (
+    user_is_authenticated,
+    user_is_project_collaborator,
+)
 from etlman.projects.forms import ProjectForm, StepForm
 from etlman.projects.models import Collaborator, Pipeline, Project, Step
 

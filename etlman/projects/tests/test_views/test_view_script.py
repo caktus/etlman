@@ -8,9 +8,9 @@ from django.urls import reverse
 
 from etlman.projects.models import Step
 from etlman.projects.tests.factories import (
+    CollaboratorFactory,
     PipelineFactory,
     StepFactory,
-    CollaboratorFactory,
 )
 from etlman.projects.views import MessagesEnum
 
@@ -98,9 +98,7 @@ class TestScriptView:
 
 @pytest.mark.django_db
 class TestHTMLInViews:
-    def test_pipeline_table_headers_and_tags_in_html(
-        self, nonadmin_client
-    ):
+    def test_pipeline_authorizer(self, nonadmin_client):
         pipeline = PipelineFactory()
         response = nonadmin_client.get(
             reverse("projects:pipeline_list", args=(pipeline.project.pk,)), follow=True

@@ -6,7 +6,9 @@ from etlman.users.models import User
 class Project(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
-    collaborators = models.ManyToManyField(User, through="Collaborator", related_name="projects")
+    collaborators = models.ManyToManyField(
+        User, through="Collaborator", related_name="projects"
+    )
 
     def __str__(self):
         return self.name
