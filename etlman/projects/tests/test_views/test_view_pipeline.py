@@ -3,14 +3,12 @@ from http import HTTPStatus
 import pytest
 from django.urls import reverse
 
-from etlman.projects.models import Project
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
     PipelineFactory,
     ProjectFactory,
 )
-from etlman.projects.views import MessagesEnum
 
 
 @pytest.mark.django_db

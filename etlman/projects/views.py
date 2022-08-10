@@ -111,7 +111,7 @@ def new_pipeline(request, project_id):
             # return HttpResponseRedirect(
             #     reverse("projects:step_form_upsert", args=(project_id,))
             # )
-    else: # GET
+    else:  # GET
         form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
     context = {
         "form_pipeline": form_pipeline,
