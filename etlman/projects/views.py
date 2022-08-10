@@ -86,9 +86,8 @@ def new_pipeline(request, project_id):
 
     # Form functionality
     if request.method == "POST":
-        form_pipeline, form_datainterface = PipelineForm(
-            request.POST
-        ), DataInterfaceForm(request.POST)
+        form_pipeline = PipelineForm(request.POST)
+        form_datainterface = DataInterfaceForm(request.POST)
         if form_pipeline.is_valid() and form_datainterface.is_valid():
 
             saved_datainterface = form_datainterface.save(commit=False)
@@ -108,11 +107,12 @@ def new_pipeline(request, project_id):
             #     MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
             # )
 
-            return HttpResponseRedirect(
-                reverse("projects:step_form_upsert", args=(project_id,))
-            )
-
-    form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
+            return HttpResponseRedirect(reverse("home"))
+            # return HttpResponseRedirect(
+            #     reverse("projects:step_form_upsert", args=(project_id,))
+            # )
+    else: # GET
+        form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
     context = {
         "form_pipeline": form_pipeline,
         "form_datainterface": form_datainterface,
