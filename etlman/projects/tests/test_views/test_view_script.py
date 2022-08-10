@@ -130,11 +130,10 @@ class TestHTMLInViews:
         response = nonadmin_client.get(
             reverse("projects:pipeline_list", args=(pipeline.project.pk,)), follow=True
         )
-        html = str(response.content)
+        context = response.context
 
         assert response.status_code == HTTPStatus.OK.numerator
-        assert pipeline.name in html
-        assert pipeline.input.interface_type in html
+        assert pipeline in context["pipeline_list"]
 
     def test_pipeline_table_content_in_html_no_input(
         self, nonadmin_user, nonadmin_client
