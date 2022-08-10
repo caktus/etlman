@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Project, Step
+from .models import DataInterface, Pipeline, Project, Step
 
 
 class MonacoEditorWidget(forms.Widget):
@@ -22,3 +22,17 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ["name", "description"]
+
+
+class PipelineForm(forms.ModelForm):
+    class Meta:
+        model = Pipeline
+        fields = ["name"]
+        labels = {"name": "Pipeline Name"}
+
+
+class DataInterfaceForm(forms.ModelForm):
+    class Meta:
+        model = DataInterface
+        fields = ["name", "interface_type", "connection_string"]
+        labels = {"name": "Data Interface Name"}

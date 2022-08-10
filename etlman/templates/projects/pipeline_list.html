@@ -7,7 +7,7 @@
         <h1>{{ current_project.name }} Pipelines</h1>
     </div>
     <div class="d-flex flex-row-reverse pt-3">
-        <a href="#"><button type="submit" class="btn btn-primary"> Add Pipeline </button></a>
+        <a href="{% url 'projects:new_pipeline' current_project.pk %}"><button type="submit" class="btn btn-primary"> Add Pipeline </button></a>
     </div>
 </div>
 <table class="table">
