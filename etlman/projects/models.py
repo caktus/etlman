@@ -6,7 +6,9 @@ from etlman.users.models import User
 class Project(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
-    collaborators = models.ManyToManyField(User, through="Collaborator")
+    collaborators = models.ManyToManyField(
+        User, through="Collaborator", related_name="projects"
+    )
 
     def __str__(self):
         return self.name
@@ -39,6 +41,7 @@ class DataInterface(models.Model):
 class Pipeline(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
+    input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
