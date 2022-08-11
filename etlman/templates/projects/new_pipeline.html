@@ -6,16 +6,20 @@
         {% csrf_token %}
         {{ form_pipeline|crispy }}
         {{ form_datainterface|crispy }}
-        <div class="control-group">
-            <div class="d-flex flex-row-reverse pt-3">
-                <button type="submit" class="btn btn-primary">Create Pipeline</button>
+        <div class="row pt-3">
+            <div class="col">
+                <a href="{% url 'projects:pipeline_list' current_project.pk %}"><button type="button"
+                        class="btn btn-danger">Cancel</button></a>
+            </div>
+            <div class="col">
+                <div class="control-group">
+                    <div class="d-flex flex-row-reverse">
+                        <button type="submit" class="btn btn-primary">Create Pipeline</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
-    <!-- TODO: Put this button to the left!!!! -->
-    <div class="d-flex flex-row-reverse pt-3">
-        <a href="{% url 'projects:pipeline_list' current_project.pk %}"><button
-                class="btn btn-danger">Cancel</button></a>
-    </div>
+</div>
+</form>
 </div>
 {% endblock content %}
