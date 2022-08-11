@@ -103,34 +103,24 @@ def new_pipeline_step1(request, project_id):
 
             request.session["project_id"] = project.id
 
-            saved_datainterface = form_datainterface.save(commit=False)
+            filled_datainterface = form_datainterface.save(commit=False)
             # 'request.POST.getlist("name")[-1]' is the content linked
             # to the DataInterface model.
-            saved_datainterface.name = request.POST.getlist("name")[-1]
-            saved_datainterface.project_id = project_id
-            # saved_datainterface.save()
-            request.session["data_interface"] = model_to_dict(saved_datainterface)
+            filled_datainterface.name = request.POST.getlist("name")[-1]
+            filled_datainterface.project_id = project_id
+            request.session["data_interface"] = model_to_dict(filled_datainterface)
 
-            saved_pipeline = form_pipeline.save(commit=False)
+            filled_pipeline = form_pipeline.save(commit=False)
             # 'request.POST.getlist("name")[0]' is the content linked
             # to the Pipeline model.
-            saved_pipeline.name = request.POST.getlist("name")[0]
-            saved_pipeline.project_id = project_id
-            saved_pipeline.input_id = saved_datainterface.pk
-            # saved_pipeline.save()
-            request.session["pipeline"] = model_to_dict(saved_pipeline)
-            # messages.add_message(
-            #     request,
-            #     messages.SUCCESS,
-            #     MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
-            # )
+            filled_pipeline.name = request.POST.getlist("name")[0]
+            filled_pipeline.project_id = project_id
+            filled_pipeline.input_id = filled_datainterface.pk
+            request.session["pipeline"] = model_to_dict(filled_pipeline)
 
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
             )
-            # return HttpResponseRedirect(
-            #     reverse("projects:step_form_upsert", args=(project_id,))
-            # )
     else:  # GET
         form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
     context = {
@@ -147,6 +137,8 @@ def new_step_step2(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form_data_interface = request.session["data_interface"]
     form_pipeline = request.session["pipeline"]
+
+    # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST)
         if form_step.is_valid():
@@ -175,7 +167,14 @@ def new_step_step2(request, project_id):
             )
             saved_step.save()
 
-            return HttpResponseRedirect(reverse("home"))
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
+            )
+            return HttpResponseRedirect(
+                reverse("projects:pipeline_list", args=(project.pk,))
+            )
     else:  # GET
         form_step = NewStepForm()
     context = {"form_step": form_step, "project": project}
