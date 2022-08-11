@@ -36,3 +36,14 @@ class DataInterfaceForm(forms.ModelForm):
         model = DataInterface
         fields = ["name", "interface_type", "connection_string"]
         labels = {"name": "Data Interface Name"}
+
+
+class NewStepForm(forms.ModelForm):
+    class Meta:
+        model = Step
+        fields = ["name", "script"]
+        # Customize widget for 'script' field:
+        # https://stackoverflow.com/a/22250192/166053
+        widgets = {
+            "script": MonacoEditorWidget(),
+        }

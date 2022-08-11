@@ -17,7 +17,7 @@ class StepInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [CollaboratorInline, DataInterfaceInLine]
-    list_display = ["name", "description"]
+    list_display = ["id", "name", "description"]
 
 
 class DataInterfaceAdmin(admin.ModelAdmin):
