@@ -2,7 +2,7 @@
   "name": "etlman",
   "version": "1.0.0",
   "devDependencies": {
-    "@popperjs/core": "^2.10.2",
+    "@popperjs/core": "^2.11.6",
     "autoprefixer": "^10.4.8",
     "bootstrap": "^5.2.0",
     "browser-sync": "^2.27.7",
