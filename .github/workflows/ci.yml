@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
           cache: pip
@@ -54,10 +54,10 @@ jobs:
         run:  docker-compose -f local.yml run --rm django python manage.py migrate
 
       - name: Run Django Tests
-        #run:  docker-compose -f local.yml run django pytest
         run: |
           docker-compose -f local.yml run django coverage run -m pytest
           docker-compose -f local.yml run django coverage report -m --fail-under=99
+          docker-compose -f local.yml run django python manage.py makemigrations --dry-run --check
 
       - name: Tear down the Stack
         run:  docker-compose -f local.yml down

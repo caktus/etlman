@@ -15,18 +15,10 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 class CollaboratorFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(ProjectFactory)
     user = factory.SubFactory(UserFactory)
-    role = factory.Faker("bs")
+    role = factory.Faker("pystr")
 
     class Meta:
         model = models.Collaborator
-
-
-class PipelineFactory(factory.django.DjangoModelFactory):
-    project = factory.SubFactory(ProjectFactory)
-    name = factory.Faker("name")
-
-    class Meta:
-        model = models.Pipeline
 
 
 class DataInterfaceFactory(factory.django.DjangoModelFactory):
@@ -37,6 +29,15 @@ class DataInterfaceFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.DataInterface
+
+
+class PipelineFactory(factory.django.DjangoModelFactory):
+    project = factory.SubFactory(ProjectFactory)
+    name = factory.Faker("name")
+    input = factory.SubFactory(DataInterfaceFactory)
+
+    class Meta:
+        model = models.Pipeline
 
 
 class StepFactory(factory.django.DjangoModelFactory):

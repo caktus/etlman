@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container">
+  <h2 style="padding-top: 5rem;">Let's add a new project, {{ username }}.</h2>
+  <div style="text-align: center;">
+    <hr style="margin: auto; width: 95%; margin-bottom: 2rem; margin-top: 1rem;">
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="d-flex flex-row-reverse pt-3">
+        <button type="submit" class="btn btn-primary">Create Project</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock content %}
