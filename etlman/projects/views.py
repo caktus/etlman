@@ -122,7 +122,13 @@ def new_pipeline_step1(request, project_id):
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
-        form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
+        if all([key in request.session for key in ["data_interface", "pipeline"]]):
+            form_pipeline = PipelineForm(initial=request.session["pipeline"])
+            form_datainterface = DataInterfaceForm(
+                initial=request.session["data_interface"]
+            )
+        else:
+            form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
     context = {
         "form_pipeline": form_pipeline,
         "form_datainterface": form_datainterface,
