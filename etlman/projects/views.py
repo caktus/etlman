@@ -147,7 +147,7 @@ def new_step_step2(request, project_id):
     # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST)
-        if form_step.is_valid():
+        if "save" in request.POST and form_step.is_valid():
 
             # New Data Interface
             saved_data_interface = DataInterface.objects.create(
@@ -181,7 +181,19 @@ def new_step_step2(request, project_id):
             return HttpResponseRedirect(
                 reverse("projects:pipeline_list", args=(project.pk,))
             )
+        elif "cancel" in request.POST:
+            filled_step = form_step.save(commit=False)
+            filled_step.name = request.POST["name"]
+            filled_step.script = request.POST["script"]
+            request.session["step"] = model_to_dict(filled_step)
+            return HttpResponseRedirect(
+                reverse("projects:new_pipeline", args=(project.pk,))
+            )
     else:  # GET
-        form_step = NewStepForm()
+        form_step = (
+            NewStepForm(initial=request.session["step"])
+            if "step" in request.session
+            else NewStepForm()
+        )
     context = {"form_step": form_step, "project": project}
     return render(request, "projects/new_step.html", context)
