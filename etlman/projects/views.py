@@ -118,6 +118,12 @@ def new_pipeline_step1(request, project_id):
             filled_pipeline.input_id = filled_datainterface.pk
             request.session["pipeline"] = model_to_dict(filled_pipeline)
 
+            if not request.session["step"]:
+                request.session["step"] = {
+                    "name": filled_datainterface.name + "_script",
+                    "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
+                }
+
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
             )
@@ -178,6 +184,10 @@ def new_step_step2(request, project_id):
                 messages.SUCCESS,
                 MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
             )
+
+            request.session["pipeline"] = None
+            request.session["data_interface"] = None
+            request.session["step"] = None
             return HttpResponseRedirect(
                 reverse("projects:pipeline_list", args=(project.pk,))
             )
