@@ -82,3 +82,79 @@ class TestMultiformStep2:
             follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
+
+    def test_post_data_to_new_step_with_transaction(
+        self, nonadmin_user, nonadmin_client
+    ):
+        project = ProjectFactory()
+        CollaboratorFactory(project=project, user=nonadmin_user)
+        pipeline = PipelineFactory()
+        datainterface = DataInterfaceFactory()
+
+        session = nonadmin_client.session
+        session["data_interface"] = model_to_dict(datainterface)
+        session["pipeline"] = model_to_dict(pipeline)
+        session["in_transaction"] = True
+        session.save()
+
+        response = nonadmin_client.get(
+            reverse("projects:new_pipeline", args=(project.pk,)),
+            follow=True,
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
+
+    def test_save_button_on_step_form(self, nonadmin_user, nonadmin_client):
+        project = ProjectFactory()
+        CollaboratorFactory(project=project, user=nonadmin_user)
+        pipeline = PipelineFactory()
+        datainterface = DataInterfaceFactory()
+        step = StepFactory()
+
+        data = {
+            "name": [pipeline.name, datainterface.name],
+            "interface_type": ["database"],
+            "connection_string": [datainterface.connection_string],
+            "script": step.script,
+            "save": True,
+        }
+
+        session = nonadmin_client.session
+        session["data_interface"] = model_to_dict(datainterface)
+        session["pipeline"] = model_to_dict(pipeline)
+        session["in_transaction"] = True
+        session.save()
+
+        response = nonadmin_client.post(
+            reverse("projects:new_step", args=(project.pk,)),
+            data=data,
+            follow=True,
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
+
+    def test_cancel_button_on_step_form(self, nonadmin_user, nonadmin_client):
+        project = ProjectFactory()
+        CollaboratorFactory(project=project, user=nonadmin_user)
+        pipeline = PipelineFactory()
+        datainterface = DataInterfaceFactory()
+        step = StepFactory()
+
+        data = {
+            "name": [pipeline.name, datainterface.name],
+            "interface_type": ["database"],
+            "connection_string": [datainterface.connection_string],
+            "script": step.script,
+            "cancel": True,
+        }
+
+        session = nonadmin_client.session
+        session["data_interface"] = model_to_dict(datainterface)
+        session["pipeline"] = model_to_dict(pipeline)
+        session["in_transaction"] = True
+        session.save()
+
+        response = nonadmin_client.post(
+            reverse("projects:new_step", args=(project.pk,)),
+            data=data,
+            follow=True,
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
