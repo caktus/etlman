@@ -94,7 +94,6 @@ def new_pipeline_step1(request, project_id):
         "pipeline": request.session.get("pipeline", None),
         "project_id": request.session.get("project", None),
     }
-
     # Form functionality
     if request.method == "POST":
         form_pipeline = PipelineForm(request.POST)
@@ -118,9 +117,9 @@ def new_pipeline_step1(request, project_id):
             filled_pipeline.input_id = filled_datainterface.pk
             request.session["pipeline"] = model_to_dict(filled_pipeline)
 
-            if not request.session["step"]:
+            if not request.session.get("step", None):
                 request.session["step"] = {
-                    "name": filled_datainterface.name + "_script",
+                    "name": filled_pipeline.name + "_script",
                     "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
                 }
 
@@ -128,12 +127,15 @@ def new_pipeline_step1(request, project_id):
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
-        if all([key in request.session for key in ["data_interface", "pipeline"]]):
+        if request.session.get("in_transaction", False):
             form_pipeline = PipelineForm(initial=request.session["pipeline"])
             form_datainterface = DataInterfaceForm(
                 initial=request.session["data_interface"]
             )
         else:
+            request.session["pipeline"] = None
+            request.session["data_interface"] = None
+            request.session["step"] = None
             form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
     context = {
         "form_pipeline": form_pipeline,
@@ -141,6 +143,7 @@ def new_pipeline_step1(request, project_id):
         "username": username,
         "current_project": project,
     }
+    request.session["in_transaction"] = False
     return render(request, "projects/new_pipeline.html", context)
 
 
@@ -170,12 +173,16 @@ def new_step_step2(request, project_id):
             )
 
             # New Step
+            # So this here should be always Step 1, because we are on the wizard right?
             form_step.save(commit=False)
             saved_step = Step.objects.create(
                 pipeline=saved_pipeline,
                 name=request.POST["name"],
                 script=request.POST["script"],
-                step_order=Step.objects.all().last().step_order + 1,
+                step_order=1,
+                # step_order=max(Step.objects.values_list('step_order', flat=True)) + 1
+                # if Step.objects.exists()
+                # else 1,
             )
             saved_step.save()
 
@@ -188,6 +195,7 @@ def new_step_step2(request, project_id):
             request.session["pipeline"] = None
             request.session["data_interface"] = None
             request.session["step"] = None
+            request.session["in_transaction"] = None
             return HttpResponseRedirect(
                 reverse("projects:pipeline_list", args=(project.pk,))
             )
@@ -196,6 +204,7 @@ def new_step_step2(request, project_id):
             filled_step.name = request.POST["name"]
             filled_step.script = request.POST["script"]
             request.session["step"] = model_to_dict(filled_step)
+            request.session["in_transaction"] = True
             return HttpResponseRedirect(
                 reverse("projects:new_pipeline", args=(project.pk,))
             )
