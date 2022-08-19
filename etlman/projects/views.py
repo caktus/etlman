@@ -16,6 +16,7 @@ class MessagesEnum:
     STEP_UPDATED = "Step updated"
     STEP_CREATED = "New step script added succesfully"
     PROJECT_CREATED = "Project {name} added successfully"
+    PIPELINE_DELETED = "Pipeline {name} deleted successfully"
 
 
 @authorize(user_is_authenticated)
@@ -46,6 +47,19 @@ def pipeline_list(request, project_id):
     pipelines = Pipeline.objects.filter(project=project)
     context = {"pipeline_list": pipelines, "current_project": project}
     return render(request, "projects/pipeline_list.html", context)
+
+
+@authorize(user_is_project_collaborator)
+def pipeline_delete(request, project_id, pipeline_id):
+    pipeline = Pipeline.objects.get(id=pipeline_id)
+    project = Project.objects.get(id=project_id)
+    pipeline.delete()
+    messages.add_message(
+        request,
+        messages.SUCCESS,
+        MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name),
+    )
+    return HttpResponseRedirect(reverse("projects:pipeline_list", args=(project.pk,)))
 
 
 @authorize(user_is_authenticated)
