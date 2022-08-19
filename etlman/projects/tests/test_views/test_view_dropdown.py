@@ -4,8 +4,13 @@ from random import randint
 import pytest
 from django.urls import reverse
 
-from etlman.projects.models import Collaborator
-from etlman.projects.tests.factories import CollaboratorFactory, ProjectFactory
+from etlman.projects.models import Collaborator, Pipeline
+from etlman.projects.tests.factories import (
+    CollaboratorFactory,
+    PipelineFactory,
+    ProjectFactory,
+)
+from etlman.projects.views import MessagesEnum
 from etlman.users.models import User
 
 
@@ -64,3 +69,23 @@ class TestProjectDropdownList:
         project_list = context["current_user_projects"]
         assert response.status_code == HTTPStatus.OK.numerator
         assert saved_project not in project_list, context["user"]
+
+    def test_delete_pipeline(self, nonadmin_client, nonadmin_user):
+        saved_project = ProjectFactory.create()
+        CollaboratorFactory.create(project=saved_project, user=nonadmin_user)
+        pipeline = PipelineFactory(project=saved_project)
+        assert Pipeline.objects.count() == 1
+        response = nonadmin_client.get(
+            reverse(
+                "projects:delete_pipeline",
+                args=(
+                    saved_project.id,
+                    pipeline.id,
+                ),
+            ),
+            follow=True,
+        )
+        html = str(response.content)
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name) in html
+        assert Pipeline.objects.count() == 0

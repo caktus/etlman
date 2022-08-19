@@ -29,7 +29,7 @@
             {% endif %}
             <td>
                 <a href="#"> <i class="fas fa-edit"></i></a>
-                <a href="{% url 'projects:pipeline_delete' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
+                <a href="{% url 'projects:delete_pipeline' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
                     <i class="fas fa-trash"></i></a>
             </td>
         </tr>

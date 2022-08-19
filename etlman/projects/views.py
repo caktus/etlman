@@ -20,7 +20,7 @@ class MessagesEnum:
 
 
 @authorize(user_is_authenticated)
-def step_form_upsert_view(request, pk=None):
+def upsert_step(request, pk=None):
     loaded_obj = Step.objects.get(id=pk) if pk else None
     if request.method == "POST":
         form = StepForm(request.POST, instance=loaded_obj)
@@ -33,24 +33,24 @@ def step_form_upsert_view(request, pk=None):
                 MessagesEnum.STEP_UPDATED if loaded_obj else MessagesEnum.STEP_CREATED,
             )
             return HttpResponseRedirect(
-                reverse("projects:step_form_upsert", args=[saved_obj.id])
+                reverse("projects:upsert_step", args=[saved_obj.id])
             )
     else:  # GET request
         form = StepForm(instance=loaded_obj)
     context = {"form": form}
-    return render(request, "projects/step_form.html", context)
+    return render(request, "projects/upsert_step.html", context)
 
 
 @authorize(user_is_project_collaborator)
-def pipeline_list(request, project_id):
+def list_pipeline(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     pipelines = Pipeline.objects.filter(project=project)
     context = {"pipeline_list": pipelines, "current_project": project}
-    return render(request, "projects/pipeline_list.html", context)
+    return render(request, "projects/list_pipeline.html", context)
 
 
 @authorize(user_is_project_collaborator)
-def pipeline_delete(request, project_id, pipeline_id):
+def delete_pipeline(request, project_id, pipeline_id):
     pipeline = Pipeline.objects.get(id=pipeline_id)
     project = Project.objects.get(id=project_id)
     pipeline.delete()
@@ -59,11 +59,11 @@ def pipeline_delete(request, project_id, pipeline_id):
         messages.SUCCESS,
         MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name),
     )
-    return HttpResponseRedirect(reverse("projects:pipeline_list", args=(project.pk,)))
+    return HttpResponseRedirect(reverse("projects:list_pipeline", args=(project.pk,)))
 
 
 @authorize(user_is_authenticated)
-def new_project_view(request):
+def new_project(request):
     username = request.user.username
 
     # Form functionality
@@ -84,7 +84,7 @@ def new_project_view(request):
                 MessagesEnum.PROJECT_CREATED.format(name=saved_project.name),
             )
             return HttpResponseRedirect(
-                reverse("projects:pipeline_list", args=(saved_project.pk,))
+                reverse("projects:list_pipeline", args=(saved_project.pk,))
             )
 
     form = ProjectForm()

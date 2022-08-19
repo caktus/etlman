@@ -1,21 +1,21 @@
 from django.urls import path
 
 from etlman.projects.views import (
-    new_project_view,
-    pipeline_delete,
-    pipeline_list,
-    step_form_upsert_view,
+    delete_pipeline,
+    list_pipeline,
+    new_project,
+    upsert_step,
 )
 
 app_name = "projects"
 urlpatterns = [
-    path("new-project/", view=new_project_view, name="new_project"),
-    path("<int:project_id>/pipelines/", view=pipeline_list, name="pipeline_list"),
+    path("new-project/", view=new_project, name="new_project"),
+    path("<int:project_id>/pipelines/", view=list_pipeline, name="list_pipeline"),
     path(
         "<int:project_id>/delete-pipeline/<int:pipeline_id>",
-        view=pipeline_delete,
-        name="pipeline_delete",
+        view=delete_pipeline,
+        name="delete_pipeline",
     ),
-    path("step-form/", view=step_form_upsert_view, name="step_form_upsert"),
-    path("step-form/<str:pk>/", view=step_form_upsert_view, name="step_form_upsert"),
+    path("upsert-step/", view=upsert_step, name="upsert_step"),
+    path("upsert-step/<str:pk>/", view=upsert_step, name="upsert_step"),
 ]
