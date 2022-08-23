@@ -16,7 +16,7 @@ class MessagesEnum:
     STEP_UPDATED = "Step updated"
     STEP_CREATED = "New step script added succesfully"
     PROJECT_CREATED = "Project {name} added successfully"
-    PIPELINE_DELETED = "Pipeline {name} deleted successfully"
+    PIPELINE_DELETED = "Pipeline '{name}' deleted successfully"
 
 
 @authorize(user_is_authenticated)
@@ -51,8 +51,8 @@ def list_pipeline(request, project_id):
 
 @authorize(user_is_project_collaborator)
 def delete_pipeline(request, project_id, pipeline_id):
-    pipeline = Pipeline.objects.get(id=pipeline_id)
-    project = Project.objects.get(id=project_id)
+    pipeline = get_object_or_404(Pipeline, id=pipeline_id)
+    project = get_object_or_404(Project, id=project_id)
     pipeline.delete()
     messages.add_message(
         request,
@@ -60,6 +60,13 @@ def delete_pipeline(request, project_id, pipeline_id):
         MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name),
     )
     return HttpResponseRedirect(reverse("projects:list_pipeline", args=(project.pk,)))
+
+
+@authorize(user_is_project_collaborator)
+def confirm_delete_pipeline(request, project_id, pipeline_id):
+    pipeline = get_object_or_404(Pipeline, id=pipeline_id)
+    context = {"project_id": project_id, "pipeline": pipeline}
+    return render(request, "projects/confirm_delete_pipeline.html", context)
 
 
 @authorize(user_is_authenticated)
