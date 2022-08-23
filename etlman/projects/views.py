@@ -89,54 +89,35 @@ def pipeline_list(request, project_id):
 def new_pipeline_step1(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     username = request.user.username
-    {
-        "data_interface": request.session.get("data_interface", None),
-        "pipeline": request.session.get("pipeline", None),
-        "project_id": request.session.get("project", None),
-    }
     # Form functionality
     if request.method == "POST":
         form_pipeline = PipelineForm(request.POST)
         form_datainterface = DataInterfaceForm(request.POST)
         if form_pipeline.is_valid() and form_datainterface.is_valid():
 
-            request.session["project_id"] = project.id
-
             filled_datainterface = form_datainterface.save(commit=False)
-            # 'request.POST.getlist("name")[-1]' is the content linked
-            # to the DataInterface model.
             filled_datainterface.name = request.POST.getlist("name")[-1]
-            filled_datainterface.project_id = project_id
             request.session["data_interface"] = model_to_dict(filled_datainterface)
 
             filled_pipeline = form_pipeline.save(commit=False)
-            # 'request.POST.getlist("name")[0]' is the content linked
-            # to the Pipeline model.
             filled_pipeline.name = request.POST.getlist("name")[0]
-            filled_pipeline.project_id = project_id
             filled_pipeline.input_id = filled_datainterface.pk
             request.session["pipeline"] = model_to_dict(filled_pipeline)
-
-            if not request.session.get("step", None):
-                request.session["step"] = {
-                    "name": filled_pipeline.name + "_script",
-                    "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
-                }
 
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
+        # If "in_transaction" is on session, the user came back from multiform step2
         if request.session.get("in_transaction", False):
             form_pipeline = PipelineForm(initial=request.session["pipeline"])
             form_datainterface = DataInterfaceForm(
                 initial=request.session["data_interface"]
             )
         else:
-            request.session["pipeline"] = None
-            request.session["data_interface"] = None
-            request.session["step"] = None
+            clear_session(request)
             form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
+
     context = {
         "form_pipeline": form_pipeline,
         "form_datainterface": form_datainterface,
@@ -148,19 +129,22 @@ def new_pipeline_step1(request, project_id):
 
 
 @authorize(user_is_project_collaborator)
-def new_step_step2(request, project_id):
+def new_step_step2(request, project_id, step_id=None):
     project = get_object_or_404(Project, pk=project_id)
+    step = get_object_or_404(Step, pk=step_id) if step_id else None
     form_data_interface = request.session["data_interface"]
     form_pipeline = request.session["pipeline"]
 
     # Form functionality
     if request.method == "POST":
-        form_step = NewStepForm(request.POST)
+        form_step = NewStepForm(request.POST, instance=step)
         if "save" in request.POST and form_step.is_valid():
 
             # New Data Interface
             saved_data_interface = DataInterface.objects.create(
-                project=project,
+                # # project=project,
+                # {**form_data_interface},
+                project=project,  # Project(*form_data_interface)
                 name=form_data_interface["name"],
                 interface_type=form_data_interface["interface_type"],
                 connection_string=form_data_interface["connection_string"],
@@ -173,17 +157,20 @@ def new_step_step2(request, project_id):
             )
 
             # New Step
-            # So this here should be always Step 1, because we are on the wizard right?
             form_step.save(commit=False)
             saved_step = Step.objects.create(
                 pipeline=saved_pipeline,
                 name=request.POST["name"],
                 script=request.POST["script"],
                 step_order=1,
-                # step_order=max(Step.objects.values_list('step_order', flat=True)) + 1
-                # if Step.objects.exists()
-                # else 1,
             )
+
+            # So this here should be always Step 1 for now
+            # When this changes, use the code below to calculte next step order
+            # step_order=max(Step.objects.values_list('step_order', flat=True)) + 1
+            # if Step.objects.exists()
+            # else 1,
+
             saved_step.save()
 
             messages.add_message(
@@ -192,10 +179,7 @@ def new_step_step2(request, project_id):
                 MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
             )
 
-            request.session["pipeline"] = None
-            request.session["data_interface"] = None
-            request.session["step"] = None
-            request.session["in_transaction"] = None
+            clear_session(request)
             return HttpResponseRedirect(
                 reverse("projects:pipeline_list", args=(project.pk,))
             )
@@ -209,10 +193,17 @@ def new_step_step2(request, project_id):
                 reverse("projects:new_pipeline", args=(project.pk,))
             )
     else:  # GET
-        form_step = (
-            NewStepForm(initial=request.session["step"])
-            if "step" in request.session
-            else NewStepForm()
+        form_step = NewStepForm(
+            instance=step,
+            initial={
+                "name": form_pipeline["name"] + "_script",
+                "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
+            },
         )
     context = {"form_step": form_step, "project": project}
     return render(request, "projects/new_step.html", context)
+
+
+def clear_session(request):
+    for object_name in ["pipeline", "data_interface", "step", "in_transaction"]:
+        request.session[object_name] = None

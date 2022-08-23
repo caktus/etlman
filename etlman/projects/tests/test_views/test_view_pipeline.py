@@ -4,6 +4,7 @@ import pytest
 from django.forms.models import model_to_dict
 from django.urls import reverse
 
+from etlman.projects.models import DataInterface
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
@@ -107,7 +108,12 @@ class TestMultiformStep2:
         project = ProjectFactory()
         CollaboratorFactory(project=project, user=nonadmin_user)
         pipeline = PipelineFactory()
-        datainterface = DataInterfaceFactory()
+        datainterface_build = DataInterfaceFactory(project=project)
+        datainterface = DataInterface(
+            name=datainterface_build.name,
+            connection_string=datainterface_build.connection_string,
+            project=datainterface_build.project,  # this here doesn't work
+        )
         step = StepFactory()
 
         data = {
