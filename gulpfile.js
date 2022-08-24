@@ -31,6 +31,7 @@ function pathsConfig(appName) {
     vendorsJs: [
       `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
       `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
+      `${vendorsRoot}/monaco-editor/min/vs/loader.js`,
     ],
     app: this.app,
     templates: `${this.app}/templates`,
@@ -42,7 +43,7 @@ function pathsConfig(appName) {
   }
 }
 
-var paths = pathsConfig()
+const paths = pathsConfig()
 
 ////////////////////////////////
 // Tasks
@@ -50,12 +51,12 @@ var paths = pathsConfig()
 
 // Styles autoprefixing and minification
 function styles() {
-  var processCss = [
+  const processCss = [
       autoprefixer(), // adds vendor prefixes
       pixrem(),       // add fallbacks for rem units
   ]
 
-  var minifyCss = [
+  const minifyCss = [
       cssnano({ preset: 'default' })   // minify result
   ]
 
@@ -102,7 +103,7 @@ function imgCompression() {
 }
 // Run django server
 function runServer(cb) {
-  var cmd = spawn('python', ['manage.py', 'runserver'], {stdio: 'inherit'})
+  const cmd = spawn('python', ['manage.py', 'runserver'], {stdio: 'inherit'})
   cmd.on('close', function(code) {
     console.log('runServer exited with code ' + code)
     cb(code)
