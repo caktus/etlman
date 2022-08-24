@@ -89,26 +89,31 @@ def pipeline_list(request, project_id):
 def new_pipeline_step1(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     username = request.user.username
-    # Form functionality
     if request.method == "POST":
         form_pipeline = PipelineForm(request.POST)
         form_datainterface = DataInterfaceForm(request.POST)
         if form_pipeline.is_valid() and form_datainterface.is_valid():
-
             filled_datainterface = form_datainterface.save(commit=False)
-            filled_datainterface.name = request.POST.getlist("name")[-1]
+            filled_datainterface.name = request.POST["datainterface-name"]
             request.session["data_interface"] = model_to_dict(filled_datainterface)
 
             filled_pipeline = form_pipeline.save(commit=False)
-            filled_pipeline.name = request.POST.getlist("name")[0]
+            filled_pipeline.name = request.POST["pipeline-name"]
             filled_pipeline.input_id = filled_datainterface.pk
             request.session["pipeline"] = model_to_dict(filled_pipeline)
 
+            # if request.session.get("step", False):
+            #     print(request.session["step"])
+            #     return HttpResponseRedirect(
+            #         reverse("projects:new_step", args=(project.pk, request.session["step"]))
+            #     )
+            # else:
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
         # If "in_transaction" is on session, the user came back from multiform step2
+        print(request.session.items())
         if request.session.get("in_transaction", False):
             form_pipeline = PipelineForm(initial=request.session["pipeline"])
             form_datainterface = DataInterfaceForm(
@@ -138,17 +143,17 @@ def new_step_step2(request, project_id, step_id=None):
     # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST, instance=step)
+        print("Post:", request.POST)
         if "save" in request.POST and form_step.is_valid():
 
             # New Data Interface
             saved_data_interface = DataInterface.objects.create(
-                # # project=project,
-                # {**form_data_interface},
-                project=project,  # Project(*form_data_interface)
+                project=project,
                 name=form_data_interface["name"],
                 interface_type=form_data_interface["interface_type"],
                 connection_string=form_data_interface["connection_string"],
             )
+
             # New Pipeline
             saved_pipeline = Pipeline.objects.create(
                 project=project,
@@ -189,6 +194,7 @@ def new_step_step2(request, project_id, step_id=None):
             filled_step.script = request.POST["script"]
             request.session["step"] = model_to_dict(filled_step)
             request.session["in_transaction"] = True
+            print(request.session.items())
             return HttpResponseRedirect(
                 reverse("projects:new_pipeline", args=(project.pk,))
             )

@@ -30,9 +30,10 @@ class TestMultiformStep1:
         pipeline = PipelineFactory()
         datainterface = DataInterfaceFactory()
         data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
-            "connection_string": [datainterface.connection_string],
+            "pipeline-name": pipeline.name,
+            "datainterface-name": datainterface.name,
+            "datainterface-interface_type": "database",
+            "datainterface-connection_string": datainterface.connection_string,
         }
         response = nonadmin_client.post(
             reverse("projects:new_pipeline", args=(project.pk,)),
@@ -65,13 +66,6 @@ class TestMultiformStep2:
         datainterface = DataInterfaceFactory()
         step = StepFactory()
 
-        data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
-            "connection_string": [datainterface.connection_string],
-            "script": step.script,
-        }
-
         session = nonadmin_client.session
         session["data_interface"] = model_to_dict(datainterface)
         session["pipeline"] = model_to_dict(pipeline)
@@ -79,7 +73,6 @@ class TestMultiformStep2:
 
         response = nonadmin_client.post(
             reverse("projects:new_step", args=(project.pk,)),
-            data=data,
             follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
@@ -145,9 +138,7 @@ class TestMultiformStep2:
         step = StepFactory()
 
         data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
-            "connection_string": [datainterface.connection_string],
+            "name": step.name,
             "script": step.script,
             "cancel": True,
         }

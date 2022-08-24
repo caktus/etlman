@@ -25,17 +25,19 @@ class ProjectForm(forms.ModelForm):
 
 
 class PipelineForm(forms.ModelForm):
+    prefix = "pipeline"
+
     class Meta:
         model = Pipeline
-        prefix = "pipeline"
         fields = ["name"]
         labels = {"name": "Pipeline Name"}
 
 
 class DataInterfaceForm(forms.ModelForm):
+    prefix = "datainterface"
+
     class Meta:
         model = DataInterface
-        prefix = "datainterface"
         fields = ["name", "interface_type", "connection_string"]
         labels = {"name": "Data Interface Name"}
 
