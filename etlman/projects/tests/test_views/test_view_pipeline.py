@@ -64,7 +64,6 @@ class TestMultiformStep2:
         CollaboratorFactory(project=project, user=nonadmin_user)
         pipeline = PipelineFactory()
         datainterface = DataInterfaceFactory()
-        step = StepFactory()
 
         session = nonadmin_client.session
         session["data_interface"] = model_to_dict(datainterface)
@@ -110,10 +109,12 @@ class TestMultiformStep2:
         step = StepFactory()
 
         data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
-            "connection_string": [datainterface.connection_string],
+            "name": step.name,
             "script": step.script,
+            "pipeline-name": pipeline.name,
+            "datainterface-name": datainterface.name,
+            "datainterface-interface_type": "database",
+            "datainterface-connection_string": datainterface.connection_string,
             "save": True,
         }
 

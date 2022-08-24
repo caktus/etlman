@@ -102,26 +102,14 @@ def new_pipeline_step1(request, project_id):
             filled_pipeline.input_id = filled_datainterface.pk
             request.session["pipeline"] = model_to_dict(filled_pipeline)
 
-            # if request.session.get("step", False):
-            #     print(request.session["step"])
-            #     return HttpResponseRedirect(
-            #         reverse("projects:new_step", args=(project.pk, request.session["step"]))
-            #     )
-            # else:
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
-        # If "in_transaction" is on session, the user came back from multiform step2
-        print(request.session.items())
-        if request.session.get("in_transaction", False):
-            form_pipeline = PipelineForm(initial=request.session["pipeline"])
-            form_datainterface = DataInterfaceForm(
-                initial=request.session["data_interface"]
-            )
-        else:
-            clear_session(request)
-            form_pipeline, form_datainterface = PipelineForm(), DataInterfaceForm()
+        pipeline_auxiliary = request.session.get("pipeline", None)
+        datainterface_auxiliary = request.session.get("data_interface", None)
+        form_pipeline = PipelineForm(initial=pipeline_auxiliary)
+        form_datainterface = DataInterfaceForm(initial=datainterface_auxiliary)
 
     context = {
         "form_pipeline": form_pipeline,
@@ -129,7 +117,6 @@ def new_pipeline_step1(request, project_id):
         "username": username,
         "current_project": project,
     }
-    request.session["in_transaction"] = False
     return render(request, "projects/new_pipeline.html", context)
 
 
@@ -143,7 +130,6 @@ def new_step_step2(request, project_id, step_id=None):
     # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST, instance=step)
-        print("Post:", request.POST)
         if "save" in request.POST and form_step.is_valid():
 
             # New Data Interface
@@ -184,7 +170,7 @@ def new_step_step2(request, project_id, step_id=None):
                 MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
             )
 
-            clear_session(request)
+            clear_step_wizard_session_variables(request)
             return HttpResponseRedirect(
                 reverse("projects:pipeline_list", args=(project.pk,))
             )
@@ -193,8 +179,6 @@ def new_step_step2(request, project_id, step_id=None):
             filled_step.name = request.POST["name"]
             filled_step.script = request.POST["script"]
             request.session["step"] = model_to_dict(filled_step)
-            request.session["in_transaction"] = True
-            print(request.session.items())
             return HttpResponseRedirect(
                 reverse("projects:new_pipeline", args=(project.pk,))
             )
@@ -210,6 +194,6 @@ def new_step_step2(request, project_id, step_id=None):
     return render(request, "projects/new_step.html", context)
 
 
-def clear_session(request):
-    for object_name in ["pipeline", "data_interface", "step", "in_transaction"]:
+def clear_step_wizard_session_variables(request):
+    for object_name in ["pipeline", "data_interface", "step"]:
         request.session[object_name] = None
