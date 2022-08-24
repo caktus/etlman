@@ -1,11 +1,17 @@
+from html import unescape
 from http import HTTPStatus
 from random import randint
 
 import pytest
 from django.urls import reverse
 
-from etlman.projects.models import Collaborator
-from etlman.projects.tests.factories import CollaboratorFactory, ProjectFactory
+from etlman.projects.models import Collaborator, Pipeline
+from etlman.projects.tests.factories import (
+    CollaboratorFactory,
+    PipelineFactory,
+    ProjectFactory,
+)
+from etlman.projects.views import MessagesEnum
 from etlman.users.models import User
 
 
@@ -13,7 +19,7 @@ from etlman.users.models import User
 class TestProjectDropdownList:
     def test_dropdown_empty(self, nonadmin_client):
         response = nonadmin_client.get(reverse("home"))
-        html = str(response.content)
+        html = unescape(response.content.decode("utf-8"))
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
 
@@ -25,7 +31,7 @@ class TestProjectDropdownList:
             data=data,
         )
         response = nonadmin_client.get(reverse("home"))
-        html = str(response.content)
+        html = unescape(response.content.decode("utf-8"))
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
         assert project_data.name in html
@@ -39,7 +45,7 @@ class TestProjectDropdownList:
                 data=data,
             )
         response = nonadmin_client.get(reverse("home"))
-        html = str(response.content)
+        html = unescape(response.content.decode("utf-8"))
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Add a project" in html, html
         assert all([project_data.name in html for project_data in project_list])
@@ -64,3 +70,45 @@ class TestProjectDropdownList:
         project_list = context["current_user_projects"]
         assert response.status_code == HTTPStatus.OK.numerator
         assert saved_project not in project_list, context["user"]
+
+    def test_delete_pipeline(self, nonadmin_client, nonadmin_user):
+        saved_project = ProjectFactory.create()
+        CollaboratorFactory.create(project=saved_project, user=nonadmin_user)
+        pipeline = PipelineFactory(project=saved_project)
+        assert Pipeline.objects.count() == 1
+        response = nonadmin_client.post(
+            reverse(
+                "projects:delete_pipeline",
+                args=(
+                    saved_project.id,
+                    pipeline.id,
+                ),
+            ),
+            follow=True,
+        )
+
+        html = unescape(response.content.decode("utf-8"))
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name) in html, html
+        assert Pipeline.objects.count() == 0
+
+    def test_confirm_delete_pipeline(self, nonadmin_client, nonadmin_user):
+        saved_project = ProjectFactory.create()
+        CollaboratorFactory.create(project=saved_project, user=nonadmin_user)
+        pipeline = PipelineFactory(project=saved_project)
+        response = nonadmin_client.post(
+            reverse(
+                "projects:confirm_delete_pipeline",
+                args=(
+                    saved_project.id,
+                    pipeline.id,
+                ),
+            ),
+            follow=True,
+        )
+        delete_msg = f'Do you really want to delete Pipeline "{ pipeline.name }"?'
+        html = unescape(response.content.decode("utf-8"))
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert "Delete" in html
+        assert "Cancel" in html
+        assert delete_msg in html, html
