@@ -182,19 +182,3 @@ class TestMultiformStep2:
         edited_step_model = Step.objects.get(pk=step_model.pk)
         assert data["name"] == edited_step_model.name
         assert data["script"] == edited_step_model.script
-
-        # html = str(response.content)
-        # assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
-        # assert response.status_code == HTTPStatus.OK.numerator
-        # assert Step.objects.count() == 1, Step.objects.all()
-        # NEW_SCRIPT_CONTENT = "I am a new script"
-        # step_model.script = NEW_SCRIPT_CONTENT
-
-        # response = self.get_response_from_post_data_to_view(
-        #     nonadmin_client, project, step_model, str(Step.objects.get().id)
-        # )
-        # html = str(response.content)
-        # assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
-        # assert response.status_code == HTTPStatus.OK.numerator
-        # assert NEW_SCRIPT_CONTENT in html
-        # assert MessagesEnum.STEP_UPDATED in html
