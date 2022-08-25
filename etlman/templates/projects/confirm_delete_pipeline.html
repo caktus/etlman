@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container">
+    <h2 style="padding-top: 5rem;">Do you really want to delete Pipeline "{{ pipeline.name }}"?</h2>
+    <form method="post" action="{% url 'projects:delete_pipeline' project_id=project_id pipeline_id=pipeline.id %}">
+        {% csrf_token %}
+        <div class="row pt-3">
+            <div class="col">
+                <a href="{% url 'projects:list_pipeline' project_id=project_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+            <div class="col">
+                <div class="control-group">
+                    <div class="d-flex flex-row-reverse">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock content %}
