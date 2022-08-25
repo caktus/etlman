@@ -11,7 +11,6 @@ from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
     PipelineFactory,
-    ProjectFactory,
     StepFactory,
 )
 
@@ -24,8 +23,7 @@ class TestMultiformStep1:
         )
         assert response.status_code == HTTPStatus.OK.numerator
 
-    def test_post_data_to_new_pipeline(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
+    def test_post_data_to_new_pipeline(self, nonadmin_user, nonadmin_client, project):
         CollaboratorFactory(project=project, user=nonadmin_user)
         pipeline = PipelineFactory()
         datainterface = DataInterfaceFactory()
@@ -71,7 +69,6 @@ class TestMultiformStep2:
         response = client.post(
             reverse(url_name, kwargs=kwargs),
             data=data,
-            follow=True,
         )
         return response
 
@@ -115,57 +112,89 @@ class TestMultiformStep2:
         assert Pipeline.objects.count() == 0
         assert DataInterface.objects.count() == 0
         assert Step.objects.count() == 0
+        assert Pipeline.objects.count() == 0
+
         response = nonadmin_client.post(
             reverse("projects:new_step", args=(project.pk,)),
             data=data,
         )
-        assert response.status_code == HTTPStatus.FOUND.numerator
         assert (
             response.context is None or "form_step" not in response.context
         ), response.context["form_step"].errors
+        assert response.status_code == HTTPStatus.FOUND.numerator
         assert Pipeline.objects.count() == 1
         assert DataInterface.objects.count() == 1
         assert Step.objects.count() == 1
+        assert Pipeline.objects.count() == 1
+
         created_step = Step.objects.get()
         assert step.name == created_step.name
-        # TODO: check saved values for pipeline and data interface
 
-    # def test_edit_step_get(self, nonadmin_client, project):
-    #     step_model = StepFactory(pipeline=PipelineFactory(project=project))
-    #     response = self.get_response_from_post_data_to_view(
-    #         nonadmin_client, project, step_model
-    #     )
-    #     # TODO:
-    #     # - add call to method to populate session with required variables
-    #     # - make sure it's using the 'edit_step' URL (not 'new_step)
-    #     html = str(response.content)
-    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
-    #     assert response.status_code == HTTPStatus.OK.numerator
-    #     assert step_model.script in html, html
-    #     assert MessagesEnum.STEP_CREATED in html
+        created_pipeline = Pipeline.objects.get()
+        assert pipeline.name == created_pipeline.name
 
-    # def test_edit_step_post(self, nonadmin_client, project):
-    #     # TODO:
-    #     # - add call to method to populate session with required variables
-    #     # - make sure it's using the 'edit_step' URL (not 'new_step)
-    #     # - update not to use follow=True, if possible
-    #     # - add checks for model objects saved to DB (like test_new_step_post)
-    #     step_model = StepFactory(pipeline=PipelineFactory(project=project))
-    #     response = self.get_response_from_post_data_to_view(
-    #         nonadmin_client, project, step_model
-    #     )
-    #     html = str(response.content)
-    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
-    #     assert response.status_code == HTTPStatus.OK.numerator
-    #     assert Step.objects.count() == 1, Step.objects.all()
-    #     NEW_SCRIPT_CONTENT = "I am a new script"
-    #     step_model.script = NEW_SCRIPT_CONTENT
+        created_data_interface = DataInterface.objects.get()
+        assert datainterface.name == created_data_interface.name
+        assert datainterface.interface_type == created_data_interface.interface_type
+        assert (
+            datainterface.connection_string == created_data_interface.connection_string
+        )
 
-    #     response = self.get_response_from_post_data_to_view(
-    #         nonadmin_client, project, step_model, str(Step.objects.get().id)
-    #     )
-    #     html = str(response.content)
-    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
-    #     assert response.status_code == HTTPStatus.OK.numerator
-    #     assert NEW_SCRIPT_CONTENT in html
-    #     assert MessagesEnum.STEP_UPDATED in html
+    def test_edit_step_get(self, nonadmin_client, project):
+        step_model = StepFactory(pipeline=PipelineFactory(project=project))
+        pipeline = step_model.pipeline
+        datainterface = pipeline.input
+
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+
+        response = self.get_response_from_post_data_to_view(
+            nonadmin_client,
+            project,
+            step_model,
+            step_id=step_model.pk,  # make sure we use the 'edit_step' view
+        )
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert "form_step" in response.context
+        assert response.context["form_step"].instance == step_model
+
+    def test_edit_step_post(self, nonadmin_client, project):
+        step_model = StepFactory(pipeline=PipelineFactory(project=project))
+        pipeline = step_model.pipeline
+        datainterface = pipeline.input
+
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+
+        data = {
+            "name": "new name",
+            "script": "new script",
+            "save": "true",
+        }
+        kwargs = {"project_id": project.id, "step_id": step_model.pk}
+        response = nonadmin_client.post(
+            reverse("projects:edit_step", kwargs=kwargs),
+            data=data,
+        )
+        assert (response.context is None) or (
+            "form_step" not in response.context
+        ), response.context["form_step"].errors
+        assert response.status_code == HTTPStatus.FOUND.numerator
+        edited_step_model = Step.objects.get(pk=step_model.pk)
+        assert data["name"] == edited_step_model.name
+        assert data["script"] == edited_step_model.script
+
+        # html = str(response.content)
+        # assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+        # assert response.status_code == HTTPStatus.OK.numerator
+        # assert Step.objects.count() == 1, Step.objects.all()
+        # NEW_SCRIPT_CONTENT = "I am a new script"
+        # step_model.script = NEW_SCRIPT_CONTENT
+
+        # response = self.get_response_from_post_data_to_view(
+        #     nonadmin_client, project, step_model, str(Step.objects.get().id)
+        # )
+        # html = str(response.content)
+        # assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+        # assert response.status_code == HTTPStatus.OK.numerator
+        # assert NEW_SCRIPT_CONTENT in html
+        # assert MessagesEnum.STEP_UPDATED in html

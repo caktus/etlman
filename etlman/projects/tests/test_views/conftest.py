@@ -50,8 +50,8 @@ def nonadmin_client(
 
 
 @pytest.fixture()
-def project(nonadmin_user, nonadmin_client) -> Project:
-    """A project"""
+def project(nonadmin_user) -> Project:
+    """A project created by a user who is not an admin"""
 
     project = ProjectFactory()
     CollaboratorFactory(project=project, user=nonadmin_user)

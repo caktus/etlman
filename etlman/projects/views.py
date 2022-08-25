@@ -26,6 +26,13 @@ class MessagesEnum:
     PIPELINE_DELETED = "Pipeline '{name}' deleted successfully"
 
 
+# TODO: Create enum or constants for these session keys + make them more unique; e.g.:
+# SESSION_KEY_PIPELINE = "_pipeline_wizard_pipeline"
+# SESSION_KEY_DATA_INTERFACE = "_pipeline_wizard_data_interface"
+# SESSION_KEY_STEP = "_pipeline_wizard_step"
+# Then, use in place of session keys throughout (session["pipeline"])
+
+
 @authorize(user_is_project_collaborator)
 def list_pipeline(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
@@ -94,6 +101,8 @@ def new_pipeline_step1(request, project_id):
         if form_pipeline.is_valid() and form_datainterface.is_valid():
             filled_datainterface = form_datainterface.save(commit=False)
             filled_datainterface.name = request.POST["datainterface-name"]
+            # TODO: When saving these to the session, ensure they have only the keys
+            # accepted by create() in step2, below.
             request.session["data_interface"] = model_to_dict(filled_datainterface)
 
             filled_pipeline = form_pipeline.save(commit=False)
@@ -123,39 +132,30 @@ def new_pipeline_step1(request, project_id):
 def new_step_step2(request, project_id, step_id=None):
     project = get_object_or_404(Project, pk=project_id)
     step = get_object_or_404(Step, pk=step_id) if step_id else None
-    form_data_interface = request.session["data_interface"]
-    form_pipeline = request.session["pipeline"]
+    session_data_interface = request.session["data_interface"]
+    session_pipeline = request.session["pipeline"]
 
     # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST, instance=step)
         if "save" in request.POST and form_step.is_valid():
-
-            # New Data Interface
             saved_data_interface = DataInterface.objects.create(
                 project=project,
-                name=form_data_interface["name"],
-                interface_type=form_data_interface["interface_type"],
-                connection_string=form_data_interface["connection_string"],
+                name=session_data_interface["name"],
+                interface_type=session_data_interface["interface_type"],
+                connection_string=session_data_interface["connection_string"],
             )
 
-            # New Pipeline
             saved_pipeline = Pipeline.objects.create(
                 project=project,
-                name=form_pipeline["name"],
+                name=session_pipeline["name"],
                 input=saved_data_interface,
             )
 
-            # New Step
-            form_step.save(commit=False)
-            saved_step = Step.objects.create(
-                pipeline=saved_pipeline,
-                name=request.POST["name"],
-                script=request.POST["script"],
-                step_order=1,
-            )
-
-            saved_step.save()
+            new_step = form_step.save(commit=False)
+            new_step.pipeline = saved_pipeline
+            new_step.step_order = 1
+            new_step.save()
 
             messages.add_message(
                 request,
@@ -167,7 +167,9 @@ def new_step_step2(request, project_id, step_id=None):
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
             )
-        elif "cancel" in request.POST:
+
+        elif "back" in request.POST:
+            # TODO: dig up test from git history and restore for this code (might have been called "cancel?")
             filled_step = form_step.save(commit=False)
             filled_step.name = request.POST["name"]
             filled_step.script = request.POST["script"]
@@ -176,13 +178,11 @@ def new_step_step2(request, project_id, step_id=None):
                 reverse("projects:new_pipeline", args=(project.pk,))
             )
     else:  # GET
-        form_step = NewStepForm(
-            instance=step,
-            initial={
-                "name": form_pipeline["name"] + "_script",
-                "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
-            },
-        )
+        initial = request.session.get("step") or {
+            "name": session_pipeline["name"] + "_script",
+            "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
+        }
+        form_step = NewStepForm(instance=step, initial=initial)
     context = {"form_step": form_step, "project": project}
     return render(request, "projects/new_step.html", context)
 
