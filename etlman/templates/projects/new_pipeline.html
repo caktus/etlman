@@ -8,7 +8,7 @@
         {{ form_datainterface|crispy }}
         <div class="row pt-3">
             <div class="col">
-                <a href="{% url 'projects:pipeline_list' current_project.pk %}"><button type="button"
+                <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="button"
                         class="btn btn-danger">Cancel</button></a>
             </div>
             <div class="col">

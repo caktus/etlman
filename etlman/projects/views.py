@@ -155,12 +155,6 @@ def new_step_step2(request, project_id, step_id=None):
                 step_order=1,
             )
 
-            # So this here should be always Step 1 for now
-            # When this changes, use the code below to calculte next step order
-            # step_order=max(Step.objects.values_list('step_order', flat=True)) + 1
-            # if Step.objects.exists()
-            # else 1,
-
             saved_step.save()
 
             messages.add_message(
@@ -171,7 +165,7 @@ def new_step_step2(request, project_id, step_id=None):
 
             clear_step_wizard_session_variables(request)
             return HttpResponseRedirect(
-                reverse("projects:pipeline_list", args=(project.pk,))
+                reverse("projects:list_pipeline", args=(project.pk,))
             )
         elif "cancel" in request.POST:
             filled_step = form_step.save(commit=False)

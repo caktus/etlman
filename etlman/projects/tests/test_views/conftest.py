@@ -1,7 +1,8 @@
 import pytest
 from django.test.client import Client
 
-from etlman.users.models import User
+from etlman.projects.models import Project, User
+from etlman.projects.tests.factories import CollaboratorFactory, ProjectFactory
 
 
 # Adapted from pytest 'admin_user' and 'admin_client':
@@ -46,3 +47,12 @@ def nonadmin_client(
     client = Client()
     client.force_login(nonadmin_user)
     return client
+
+
+@pytest.fixture()
+def project(nonadmin_user, nonadmin_client) -> Project:
+    """A project"""
+
+    project = ProjectFactory()
+    CollaboratorFactory(project=project, user=nonadmin_user)
+    return project

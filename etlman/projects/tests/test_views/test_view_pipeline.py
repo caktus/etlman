@@ -1,10 +1,12 @@
 from http import HTTPStatus
+from typing import Optional
 
 import pytest
 from django.forms.models import model_to_dict
+from django.test import Client
 from django.urls import reverse
 
-from etlman.projects.models import DataInterface
+from etlman.projects.models import DataInterface, Pipeline, Project, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
@@ -16,9 +18,7 @@ from etlman.projects.tests.factories import (
 
 @pytest.mark.django_db
 class TestMultiformStep1:
-    def test_new_pipeline_with_existing_project(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
+    def test_new_pipeline_with_existing_project(self, nonadmin_client, project):
         response = nonadmin_client.get(
             reverse("projects:new_pipeline", args=(project.pk,)), follow=True
         )
@@ -45,68 +45,59 @@ class TestMultiformStep1:
 
 @pytest.mark.django_db
 class TestMultiformStep2:
-    def test_new_step_with_existing_project(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
-        pipeline = PipelineFactory()
-        datainterface = DataInterfaceFactory()
-        session = nonadmin_client.session
+    def test_edit_script_view_status_code_forbidden(self, client, project):
+        response = client.get(
+            reverse("projects:new_step", args=(project.pk,)), follow=True
+        )
+        assert len(response.redirect_chain) == 1
+        assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert "Forgot Password" in str(response.content)
+
+    def get_response_from_post_data_to_view(
+        self,
+        client: Client,
+        project: Project,
+        step_model: Step,
+        step_id: Optional[str] = None,
+    ):
+        data = {k: v for k, v in model_to_dict(step_model).items() if v is not None}
+        url_name = "projects:edit_step" if step_id else "projects:new_step"
+        kwargs = {
+            "project_id": project.id,
+        }
+        if step_id:
+            kwargs["step_id"] = step_id
+        response = client.post(
+            reverse(url_name, kwargs=kwargs),
+            data=data,
+            follow=True,
+        )
+        return response
+
+    def save_step2_data_in_session(
+        self, client, pipeline, datainterface, in_transaction=None
+    ):
+        session = client.session
         session["data_interface"] = model_to_dict(datainterface)
         session["pipeline"] = model_to_dict(pipeline)
+        if in_transaction is not None:
+            session["in_transaction"] = in_transaction
         session.save()
+
+    def test_new_step_get(self, nonadmin_client, project):
+        pipeline = PipelineFactory(project=project)
+        datainterface = DataInterfaceFactory(project=project)
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
         response = nonadmin_client.get(
             reverse("projects:new_step", args=(project.pk,)), follow=True
         )
         assert response.status_code == HTTPStatus.OK.numerator
 
-    def test_post_data_to_new_step(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
-        pipeline = PipelineFactory()
-        datainterface = DataInterfaceFactory()
-
-        session = nonadmin_client.session
-        session["data_interface"] = model_to_dict(datainterface)
-        session["pipeline"] = model_to_dict(pipeline)
-        session.save()
-
-        response = nonadmin_client.post(
-            reverse("projects:new_step", args=(project.pk,)),
-            follow=True,
-        )
-        assert response.status_code == HTTPStatus.OK.numerator
-
-    def test_post_data_to_new_step_with_transaction(
-        self, nonadmin_user, nonadmin_client
-    ):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
-        pipeline = PipelineFactory()
-        datainterface = DataInterfaceFactory()
-
-        session = nonadmin_client.session
-        session["data_interface"] = model_to_dict(datainterface)
-        session["pipeline"] = model_to_dict(pipeline)
-        session["in_transaction"] = True
-        session.save()
-
-        response = nonadmin_client.get(
-            reverse("projects:new_pipeline", args=(project.pk,)),
-            follow=True,
-        )
-        assert response.status_code == HTTPStatus.OK.numerator
-
-    def test_save_button_on_step_form(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
-        pipeline = PipelineFactory()
-        datainterface_build = DataInterfaceFactory(project=project)
-        datainterface = DataInterface(
-            name=datainterface_build.name,
-            connection_string=datainterface_build.connection_string,
-            project=datainterface_build.project,  # this here doesn't work
-        )
-        step = StepFactory()
+    def test_new_step_post(self, nonadmin_client, project):
+        pipeline = PipelineFactory.build(project=project)
+        datainterface = DataInterfaceFactory.build(project=project)
+        step = StepFactory.build()
 
         data = {
             "name": step.name,
@@ -118,41 +109,63 @@ class TestMultiformStep2:
             "save": True,
         }
 
-        session = nonadmin_client.session
-        session["data_interface"] = model_to_dict(datainterface)
-        session["pipeline"] = model_to_dict(pipeline)
-        session["in_transaction"] = True
-        session.save()
-
+        self.save_step2_data_in_session(
+            nonadmin_client, pipeline, datainterface, in_transaction=True
+        )
+        assert Pipeline.objects.count() == 0
+        assert DataInterface.objects.count() == 0
+        assert Step.objects.count() == 0
         response = nonadmin_client.post(
             reverse("projects:new_step", args=(project.pk,)),
             data=data,
-            follow=True,
         )
-        assert response.status_code == HTTPStatus.OK.numerator
+        assert response.status_code == HTTPStatus.FOUND.numerator
+        assert (
+            response.context is None or "form_step" not in response.context
+        ), response.context["form_step"].errors
+        assert Pipeline.objects.count() == 1
+        assert DataInterface.objects.count() == 1
+        assert Step.objects.count() == 1
+        created_step = Step.objects.get()
+        assert step.name == created_step.name
+        # TODO: check saved values for pipeline and data interface
 
-    def test_cancel_button_on_step_form(self, nonadmin_user, nonadmin_client):
-        project = ProjectFactory()
-        CollaboratorFactory(project=project, user=nonadmin_user)
-        pipeline = PipelineFactory()
-        datainterface = DataInterfaceFactory()
-        step = StepFactory()
+    # def test_edit_step_get(self, nonadmin_client, project):
+    #     step_model = StepFactory(pipeline=PipelineFactory(project=project))
+    #     response = self.get_response_from_post_data_to_view(
+    #         nonadmin_client, project, step_model
+    #     )
+    #     # TODO:
+    #     # - add call to method to populate session with required variables
+    #     # - make sure it's using the 'edit_step' URL (not 'new_step)
+    #     html = str(response.content)
+    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+    #     assert response.status_code == HTTPStatus.OK.numerator
+    #     assert step_model.script in html, html
+    #     assert MessagesEnum.STEP_CREATED in html
 
-        data = {
-            "name": step.name,
-            "script": step.script,
-            "cancel": True,
-        }
+    # def test_edit_step_post(self, nonadmin_client, project):
+    #     # TODO:
+    #     # - add call to method to populate session with required variables
+    #     # - make sure it's using the 'edit_step' URL (not 'new_step)
+    #     # - update not to use follow=True, if possible
+    #     # - add checks for model objects saved to DB (like test_new_step_post)
+    #     step_model = StepFactory(pipeline=PipelineFactory(project=project))
+    #     response = self.get_response_from_post_data_to_view(
+    #         nonadmin_client, project, step_model
+    #     )
+    #     html = str(response.content)
+    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+    #     assert response.status_code == HTTPStatus.OK.numerator
+    #     assert Step.objects.count() == 1, Step.objects.all()
+    #     NEW_SCRIPT_CONTENT = "I am a new script"
+    #     step_model.script = NEW_SCRIPT_CONTENT
 
-        session = nonadmin_client.session
-        session["data_interface"] = model_to_dict(datainterface)
-        session["pipeline"] = model_to_dict(pipeline)
-        session["in_transaction"] = True
-        session.save()
-
-        response = nonadmin_client.post(
-            reverse("projects:new_step", args=(project.pk,)),
-            data=data,
-            follow=True,
-        )
-        assert response.status_code == HTTPStatus.OK.numerator
+    #     response = self.get_response_from_post_data_to_view(
+    #         nonadmin_client, project, step_model, str(Step.objects.get().id)
+    #     )
+    #     html = str(response.content)
+    #     assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
+    #     assert response.status_code == HTTPStatus.OK.numerator
+    #     assert NEW_SCRIPT_CONTENT in html
+    #     assert MessagesEnum.STEP_UPDATED in html
