@@ -1,12 +1,10 @@
 from http import HTTPStatus
-from typing import Optional
 
 import pytest
 from django.forms.models import model_to_dict
-from django.test import Client
 from django.urls import reverse
 
-from etlman.projects.models import DataInterface, Pipeline, Project, Step
+from etlman.projects.models import DataInterface, Pipeline, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
@@ -51,26 +49,6 @@ class TestMultiformStep2:
         assert response.redirect_chain[0][-1] == HTTPStatus.FOUND.numerator
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Forgot Password" in str(response.content)
-
-    def get_response_from_post_data_to_view(
-        self,
-        client: Client,
-        project: Project,
-        step_model: Step,
-        step_id: Optional[str] = None,
-    ):
-        data = {k: v for k, v in model_to_dict(step_model).items() if v is not None}
-        url_name = "projects:edit_step" if step_id else "projects:new_step"
-        kwargs = {
-            "project_id": project.id,
-        }
-        if step_id:
-            kwargs["step_id"] = step_id
-        response = client.post(
-            reverse(url_name, kwargs=kwargs),
-            data=data,
-        )
-        return response
 
     def save_step2_data_in_session(
         self, client, pipeline, datainterface, in_transaction=None
@@ -144,14 +122,23 @@ class TestMultiformStep2:
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
         datainterface = pipeline.input
-
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
 
-        response = self.get_response_from_post_data_to_view(
-            nonadmin_client,
-            project,
-            step_model,
-            step_id=step_model.pk,  # make sure we use the 'edit_step' view
+        data = {
+            "name": [pipeline.name, datainterface.name],
+            "interface_type": ["database"],
+            "connection_string": [datainterface.connection_string],
+            "script": step_model.script,
+        }
+        response = nonadmin_client.post(
+            reverse(
+                "projects:edit_step",
+                kwargs={
+                    "project_id": project.id,
+                    "step_id": step_model.pk,
+                },  # "step_id" ensures we use the 'edit_step' view
+            ),
+            data=data,
         )
 
         assert response.status_code == HTTPStatus.OK.numerator
@@ -182,3 +169,30 @@ class TestMultiformStep2:
         edited_step_model = Step.objects.get(pk=step_model.pk)
         assert data["name"] == edited_step_model.name
         assert data["script"] == edited_step_model.script
+
+    def test_back_edit_step_post(self, nonadmin_user, nonadmin_client, project):
+        step_model = StepFactory(pipeline=PipelineFactory(project=project))
+        pipeline = step_model.pipeline
+        datainterface = pipeline.input
+
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+
+        data = {
+            "name": [pipeline.name, datainterface.name],
+            "interface_type": ["database"],
+            "connection_string": [datainterface.connection_string],
+            "script": step_model.script,
+            "back": True,
+        }
+
+        session = nonadmin_client.session
+        session["data_interface"] = model_to_dict(datainterface)
+        session["pipeline"] = model_to_dict(pipeline)
+        session["in_transaction"] = True
+        session.save()
+
+        response = nonadmin_client.post(
+            reverse("projects:new_step", args=(project.pk,)), data=data, follow=True
+        )
+        assert response.status_code != HTTPStatus.FOUND.numerator
+        assert Step.objects.count() == 1
