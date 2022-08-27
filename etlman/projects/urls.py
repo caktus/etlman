@@ -28,6 +28,11 @@ urlpatterns = [
         "<int:project_id>/new-pipeline/", view=new_pipeline_step1, name="new_pipeline"
     ),
     # TODO: add URL for editing pipeline, update view to support editing pipeline, add test for editing pipeline
+    path(
+        "<int:project_id>/edit-pipeline/<int:pipeline_id>/",
+        view=new_pipeline_step1,
+        name="edit_pipeline",
+    ),
     path("<int:project_id>/new-step/", view=new_step_step2, name="new_step"),
     path(
         "<int:project_id>/edit-step/<int:step_id>/",

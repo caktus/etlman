@@ -26,7 +26,7 @@ class DataInterfaceAdmin(admin.ModelAdmin):
 
 
 class PipelineAdmin(admin.ModelAdmin):
-    list_display = ["name", "project"]
+    list_display = ["id", "name", "project"]
     list_filter = ("project__name",)
     inlines = [
         StepInline,

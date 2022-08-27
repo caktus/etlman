@@ -92,12 +92,20 @@ def new_project(request):
 
 
 @authorize(user_is_project_collaborator)
-def new_pipeline_step1(request, project_id):
+def new_pipeline_step1(request, project_id, pipeline_id=None):
     project = get_object_or_404(Project, pk=project_id)
+    loaded_pipeline = (
+        get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
+    )
+    loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
     username = request.user.username
+
+    # Form functionality
     if request.method == "POST":
-        form_pipeline = PipelineForm(request.POST)
-        form_datainterface = DataInterfaceForm(request.POST)
+        form_pipeline = PipelineForm(request.POST, instance=loaded_pipeline)
+        form_datainterface = DataInterfaceForm(
+            request.POST, instance=loaded_data_interface
+        )
         if form_pipeline.is_valid() and form_datainterface.is_valid():
             filled_datainterface = form_datainterface.save(commit=False)
             filled_datainterface.name = request.POST["datainterface-name"]
@@ -114,10 +122,10 @@ def new_pipeline_step1(request, project_id):
                 reverse("projects:new_step", args=(project.pk,))
             )
     else:  # GET
-        pipeline_auxiliary = request.session.get("pipeline", None)
-        datainterface_auxiliary = request.session.get("data_interface", None)
-        form_pipeline = PipelineForm(initial=pipeline_auxiliary)
-        form_datainterface = DataInterfaceForm(initial=datainterface_auxiliary)
+        # pipeline_auxiliary = request.session.get("pipeline", None)
+        # datainterface_auxiliary = request.session.get("data_interface", None)
+        form_pipeline = PipelineForm(instance=loaded_pipeline)
+        form_datainterface = DataInterfaceForm(instance=loaded_data_interface)
 
     context = {
         "form_pipeline": form_pipeline,
@@ -145,12 +153,14 @@ def new_step_step2(request, project_id, step_id=None):
                 interface_type=session_data_interface["interface_type"],
                 connection_string=session_data_interface["connection_string"],
             )
+            saved_data_interface.save
 
             saved_pipeline = Pipeline.objects.create(
                 project=project,
                 name=session_pipeline["name"],
                 input=saved_data_interface,
             )
+            saved_pipeline.save()
 
             new_step = form_step.save(commit=False)
             new_step.pipeline = saved_pipeline
@@ -169,7 +179,6 @@ def new_step_step2(request, project_id, step_id=None):
             )
 
         elif "back" in request.POST:
-            # TODO: dig up test from git history and restore for this code (might have been called "cancel?")
             filled_step = form_step.save(commit=False)
             filled_step.name = request.POST["name"]
             filled_step.script = request.POST["script"]
