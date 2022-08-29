@@ -25,8 +25,6 @@ class ProjectForm(forms.ModelForm):
 
 
 class PipelineForm(forms.ModelForm):
-    prefix = "pipeline"
-
     class Meta:
         model = Pipeline
         fields = ["name"]
@@ -34,8 +32,6 @@ class PipelineForm(forms.ModelForm):
 
 
 class DataInterfaceForm(forms.ModelForm):
-    prefix = "datainterface"
-
     class Meta:
         model = DataInterface
         fields = ["name", "interface_type", "connection_string"]

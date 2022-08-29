@@ -15,7 +15,7 @@ from etlman.projects.forms import (
     PipelineForm,
     ProjectForm,
 )
-from etlman.projects.models import Collaborator, DataInterface, Pipeline, Project, Step
+from etlman.projects.models import Collaborator, Pipeline, Project, Step
 
 
 class MessagesEnum:
@@ -27,8 +27,8 @@ class MessagesEnum:
 
 
 # TODO: Create enum or constants for these session keys + make them more unique; e.g.:
-# SESSION_KEY_PIPELINE = "_pipeline_wizard_pipeline"
-# SESSION_KEY_DATA_INTERFACE = "_pipeline_wizard_data_interface"
+# SESSION_KEY_PIPELINE = request.session["pipeline"]
+# SESSION_KEY_DATA_INTERFACE = request.session["data_interface"]
 # SESSION_KEY_STEP = "_pipeline_wizard_step"
 # Then, use in place of session keys throughout (session["pipeline"])
 
@@ -70,8 +70,7 @@ def new_project(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             saved_project = form.save()
-            # New projects require the logged user as a collaborator
-            # Here we assigned the current user as the "collaborator".
+            # New projects require the logged user as a collaborator.
             Collaborator.objects.create(
                 user=request.user,
                 role="admin",
@@ -102,21 +101,15 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
 
     # Form functionality
     if request.method == "POST":
-        form_pipeline = PipelineForm(request.POST, instance=loaded_pipeline)
+        form_pipeline = PipelineForm(
+            request.POST, instance=loaded_pipeline, prefix="pipeline"
+        )
         form_datainterface = DataInterfaceForm(
-            request.POST, instance=loaded_data_interface
+            request.POST, instance=loaded_data_interface, prefix="data_interface"
         )
         if form_pipeline.is_valid() and form_datainterface.is_valid():
-            filled_datainterface = form_datainterface.save(commit=False)
-            filled_datainterface.name = request.POST["datainterface-name"]
-            # TODO: When saving these to the session, ensure they have only the keys
-            # accepted by create() in step2, below.
-            request.session["data_interface"] = model_to_dict(filled_datainterface)
-
-            filled_pipeline = form_pipeline.save(commit=False)
-            filled_pipeline.name = request.POST["pipeline-name"]
-            filled_pipeline.input_id = filled_datainterface.pk
-            request.session["pipeline"] = model_to_dict(filled_pipeline)
+            request.session["data_interface"] = form_datainterface.cleaned_data
+            request.session["pipeline"] = form_pipeline.cleaned_data
 
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
@@ -124,8 +117,10 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
     else:  # GET
         # pipeline_auxiliary = request.session.get("pipeline", None)
         # datainterface_auxiliary = request.session.get("data_interface", None)
-        form_pipeline = PipelineForm(instance=loaded_pipeline)
-        form_datainterface = DataInterfaceForm(instance=loaded_data_interface)
+        form_pipeline = PipelineForm(instance=loaded_pipeline, prefix="pipeline")
+        form_datainterface = DataInterfaceForm(
+            instance=loaded_data_interface, prefix="data_interface"
+        )
 
     context = {
         "form_pipeline": form_pipeline,
@@ -140,37 +135,44 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
 def new_step_step2(request, project_id, step_id=None):
     project = get_object_or_404(Project, pk=project_id)
     step = get_object_or_404(Step, pk=step_id) if step_id else None
+    loaded_pipeline = step.pipeline if step else None
+    loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
     session_data_interface = request.session["data_interface"]
     session_pipeline = request.session["pipeline"]
 
     # Form functionality
     if request.method == "POST":
         form_step = NewStepForm(request.POST, instance=step)
-        if "save" in request.POST and form_step.is_valid():
-            saved_data_interface = DataInterface.objects.create(
-                project=project,
-                name=session_data_interface["name"],
-                interface_type=session_data_interface["interface_type"],
-                connection_string=session_data_interface["connection_string"],
-            )
-            saved_data_interface.save
+        # Don't pass prefix into these forms, because we are passing in the
+        # cleaned_data from step 1.
+        form_pipeline = PipelineForm(session_pipeline, instance=loaded_pipeline)
+        form_datainterface = DataInterfaceForm(
+            session_data_interface, instance=loaded_data_interface
+        )
+        if (
+            "save" in request.POST
+            and form_step.is_valid()
+            and form_pipeline.is_valid()
+            and form_datainterface.is_valid()
+        ):
+            new_data_interface = form_datainterface.save(commit=False)
+            new_data_interface.project = project
+            new_data_interface.save()
 
-            saved_pipeline = Pipeline.objects.create(
-                project=project,
-                name=session_pipeline["name"],
-                input=saved_data_interface,
-            )
-            saved_pipeline.save()
+            new_pipeline = form_pipeline.save(commit=False)
+            new_pipeline.project = project
+            new_pipeline.input = new_data_interface
+            new_pipeline.save()
 
             new_step = form_step.save(commit=False)
-            new_step.pipeline = saved_pipeline
+            new_step.pipeline = new_pipeline
             new_step.step_order = 1
             new_step.save()
 
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                MessagesEnum.PIPELINE_CREATED.format(name=saved_pipeline.name),
+                MessagesEnum.PIPELINE_CREATED.format(name=new_pipeline.name),
             )
 
             clear_step_wizard_session_variables(request)
