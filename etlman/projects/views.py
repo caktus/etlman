@@ -172,8 +172,8 @@ def new_step_step2(request, project_id, step_id=None):
                     name=new_pipeline.name
                 )
             else:
-                message = (
-                    MessagesEnum.PIPELINE_CREATED.value.format(name=new_pipeline.name),
+                message = MessagesEnum.PIPELINE_CREATED.value.format(
+                    name=new_pipeline.name
                 )
             messages.add_message(request, messages.SUCCESS, message)
 
