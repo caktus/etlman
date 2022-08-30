@@ -26,11 +26,10 @@ class MessagesEnum:
     PIPELINE_DELETED = "Pipeline '{name}' deleted successfully"
 
 
-# TODO: Create enum or constants for these session keys + make them more unique; e.g.:
-# SESSION_KEY_PIPELINE = request.session["pipeline"]
-# SESSION_KEY_DATA_INTERFACE = request.session["data_interface"]
-# SESSION_KEY_STEP = "_pipeline_wizard_step"
-# Then, use in place of session keys throughout (session["pipeline"])
+class SessionKeyEnum:
+    PIPELINE = "_pipeline_wizard_pipeline"
+    DATA_INTERFACE = "_pipeline_wizard_data_interface"
+    STEP = "_pipeline_wizard_step"
 
 
 @authorize(user_is_project_collaborator)
@@ -108,8 +107,10 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             request.POST, instance=loaded_data_interface, prefix="data_interface"
         )
         if form_pipeline.is_valid() and form_datainterface.is_valid():
-            request.session["data_interface"] = form_datainterface.cleaned_data
-            request.session["pipeline"] = form_pipeline.cleaned_data
+            request.session[
+                SessionKeyEnum.DATA_INTERFACE
+            ] = form_datainterface.cleaned_data
+            request.session[SessionKeyEnum.PIPELINE] = form_pipeline.cleaned_data
 
             return HttpResponseRedirect(
                 reverse("projects:new_step", args=(project.pk,))
@@ -137,8 +138,8 @@ def new_step_step2(request, project_id, step_id=None):
     step = get_object_or_404(Step, pk=step_id) if step_id else None
     loaded_pipeline = step.pipeline if step else None
     loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
-    session_data_interface = request.session["data_interface"]
-    session_pipeline = request.session["pipeline"]
+    session_data_interface = request.session[SessionKeyEnum.DATA_INTERFACE]
+    session_pipeline = request.session[SessionKeyEnum.PIPELINE]
 
     # Form functionality
     if request.method == "POST":
