@@ -89,7 +89,9 @@ class TestProjectDropdownList:
 
         html = unescape(response.content.decode("utf-8"))
         assert response.status_code == HTTPStatus.OK.numerator
-        assert MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name) in html, html
+        assert (
+            MessagesEnum.PIPELINE_DELETED.value.format(name=pipeline.name) in html
+        ), html
         assert Pipeline.objects.count() == 0
 
     def test_confirm_delete_pipeline(self, nonadmin_client, nonadmin_user):
