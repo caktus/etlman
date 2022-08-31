@@ -7,7 +7,8 @@
         <h1>{{ current_project.name }} Pipelines</h1>
     </div>
     <div class="d-flex flex-row-reverse pt-3">
-        <a href="#"><button type="submit" class="btn btn-primary"> Add Pipeline </button></a>
+        <a href="{% url 'projects:new_pipeline' current_project.pk %}"><button type="submit" class="btn btn-primary">
+                Add Pipeline </button></a>
     </div>
 </div>
 <table class="table">
@@ -28,7 +29,8 @@
             <td><i>No data interface attached</i></td>
             {% endif %}
             <td>
-                <a href="#"> <i class="fas fa-edit"></i></a>
+                <a href="{% url 'projects:edit_pipeline' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
+                    <i class="fas fa-edit"></i></a>
                 <a
                     href="{% url 'projects:confirm_delete_pipeline' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
                     <i class="fas fa-trash"></i></a>
