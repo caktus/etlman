@@ -20,4 +20,4 @@ django-crispy-forms==1.14.0  # https://github.com/django-crispy-forms/django-cri
 crispy-bootstrap5==0.6  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.2.0  # https://github.com/jazzband/django-redis
 django-denied==1.0  # https://github.com/mblayman/django-denied
-fontawesomefree==6.1.2
+fontawesomefree==6.2.0
