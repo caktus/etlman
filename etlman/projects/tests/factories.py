@@ -29,6 +29,7 @@ class DataInterfaceFactory(factory.django.DjangoModelFactory):
         [key for key, _ in models.DataInterface.INTERFACE_TYPE_CHOICES]
     )
     connection_string = factory.Faker("sentence")
+    sql_query = factory.Faker("hostname")
 
     class Meta:
         model = models.DataInterface
