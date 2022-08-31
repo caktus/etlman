@@ -36,7 +36,7 @@ class TestProjectDropdownList:
         assert "Add a project" in html, html
         assert project_data.name in html
 
-    def test_dropdown_with_many_projects(self, nonadmin_client):
+    def test_dropdown_with_several_projects(self, nonadmin_client):
         project_list = ProjectFactory.build_batch(randint(2, 5))
         for project_data in project_list:
             data = {"name": project_data.name, "description": project_data.description}
@@ -89,7 +89,9 @@ class TestProjectDropdownList:
 
         html = unescape(response.content.decode("utf-8"))
         assert response.status_code == HTTPStatus.OK.numerator
-        assert MessagesEnum.PIPELINE_DELETED.format(name=pipeline.name) in html, html
+        assert (
+            MessagesEnum.PIPELINE_DELETED.value.format(name=pipeline.name) in html
+        ), html
         assert Pipeline.objects.count() == 0
 
     def test_confirm_delete_pipeline(self, nonadmin_client, nonadmin_user):

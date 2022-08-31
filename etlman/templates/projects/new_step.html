@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container">
+    <form method="post">
+        {% csrf_token %}
+        {{ form_step|crispy }}
+        <div class="row pt-3">
+            <div class="col">
+                <button type="submit" name="back" class="btn btn-danger">Back</button>
+            </div>
+            <div class="col">
+                <div class="control-group">
+                    <div class="d-flex flex-row-reverse">
+                        <button type="submit" name="save" class="btn btn-primary">Save Pipeline</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock content %}
