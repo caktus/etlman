@@ -37,4 +37,4 @@ class TestNewProjectView:
         assert response.status_code == HTTPStatus.OK.numerator
         assert Project.objects.count() == 1, Project.objects.all()
         assert Project.objects.get().collaborator_set.get().user == nonadmin_user
-        assert MessagesEnum.PROJECT_CREATED.format(name=project_data.name) in html
+        assert MessagesEnum.PROJECT_CREATED.value.format(name=project_data.name) in html
