@@ -276,7 +276,3 @@ class TestMultiformStep2:
             nonadmin_client.session[SessionKeyEnum.STEP.value]["name"] == data["name"]
         )
         assert pipeline.name in str(response.content)
-
-        # TODO:
-        # - Verify status code (not sure what it should be)
-        # - Verify pipeline name in form or HTML
