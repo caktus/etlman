@@ -27,8 +27,11 @@ class DataInterfaceForm(forms.ModelForm):
 
     class Meta:
         model = DataInterface
-        fields = ["name", "interface_type", "connection_string"]
-        labels = {"name": "Data Interface Name"}
+        fields = ["name", "interface_type", "connection_string", "sql_query"]
+        labels = {"name": "Data Interface Name", "sql_query": "SQL Query"}
+        widgets = {
+            "connection_string": forms.Textarea(attrs={"rows": 3}),
+        }
 
 
 class StepForm(forms.ModelForm):

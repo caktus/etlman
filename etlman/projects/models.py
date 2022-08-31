@@ -33,6 +33,7 @@ class DataInterface(models.Model):
     name = models.CharField(max_length=256)
     interface_type = models.CharField(max_length=32, choices=INTERFACE_TYPE_CHOICES)
     connection_string = models.TextField()
+    sql_query = models.TextField()
 
     def __str__(self):
         return self.name
