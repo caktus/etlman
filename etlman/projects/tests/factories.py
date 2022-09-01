@@ -1,3 +1,5 @@
+import random
+
 import factory
 import factory.fuzzy
 
@@ -44,11 +46,15 @@ class PipelineFactory(factory.django.DjangoModelFactory):
         model = models.Pipeline
 
 
+programming_languages = ("python", "r")
+
+
 class StepFactory(factory.django.DjangoModelFactory):
     pipeline = factory.SubFactory(PipelineFactory)
     name = factory.Faker("name")  # file name
     script = factory.Faker("pystr")  # payload
     step_order = factory.Sequence(lambda n: n)
+    language = random.choice(programming_languages)
 
     class Meta:
         model = models.Step
