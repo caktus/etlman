@@ -7,7 +7,7 @@ from etlman.projects.views import (
     new_pipeline_step1,
     new_project,
     new_step_step2,
-    test_connection,
+    test_db_connection_string,
 )
 
 app_name = "projects"
@@ -41,7 +41,7 @@ urlpatterns = [
     ),
     path(
         "<int:project_id>/test-connection/",
-        view=test_connection,
+        view=test_db_connection_string,
         name="test_connection",
     ),
 ]

@@ -212,21 +212,18 @@ def clear_step_wizard_session_variables(request):
 
 
 @authorize(user_is_project_collaborator)
-def test_connection(request, project_id):
-    # Probably use form or something here for validation?
-    # print(request.POST["data_interface-connection_string"])
+def test_db_connection_string(request, project_id):
+    # Should the form be validated prior to this code running, Tobias?
     connection_string = request.POST["data_interface-connection_string"]
-    # For example, connect to our own DB
-    # pg_engine = create_engine(connection_string)
     try:
-        pg_engine = create_engine(connection_string)
         success = True
+        pg_engine = create_engine(connection_string)
     except Exception as e:
         success = False
-        message = str(e)
+        message = f"We were unable to connect to the database. \n {e}"
         table_names = ""
     if success:
-        message = "Connected!"
+        message = "Database connection successful!"
         pg_engine.connect()
         table_names = pg_engine.table_names()
     context = {
