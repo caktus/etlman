@@ -126,3 +126,28 @@ Bootstrap v5 is installed using npm and customised by tweaking your variables in
 You can find a list of available variables [in the bootstrap source](https://github.com/twbs/bootstrap/blob/main/scss/_variables.scss), or get explanations on them in the [Bootstrap docs](https://getbootstrap.com/docs/5.1/customize/sass/).
 
 Bootstrap's javascript as well as its dependencies is concatenated into a single file: `static/js/vendors.js`.
+
+
+https://pypi.org/project/pyodbc/
+How to connect: https://github.com/mkleehammer/pyodbc/wiki
+
+
+Create sample db:
+
+```
+createdb sampledb
+psql postgres://postgres@db:5432/sampledb
+```
+
+```python
+from sqlalchemy import create_engine
+# For example, connect to our own DB
+pg_engine = create_engine("postgresql://psEFhTUkzjtXzEhsxtSiTAooezSRXwRx:SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH@postgres:5432/etlman")
+pg_conn = pg_engine.connect()
+print(pg_engine.table_names())
+```
+
+
+# Helper DB URLs
+DATABASE_URL=postgresql://psEFhTUkzjtXzEhsxtSiTAooezSRXwRx:SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH@postgres:5432/etlman
+DATABASE_URL_SAMPLEDB=postgresql://psEFhTUkzjtXzEhsxtSiTAooezSRXwRx:SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH@postgres:5432/sampledb

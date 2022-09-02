@@ -12,3 +12,16 @@ REDIS_URL=redis://redis:6379/0
 # Flower
 CELERY_FLOWER_USER=joUrxXomtLUOKLvstRsWaLpaKmlwtRGY
 CELERY_FLOWER_PASSWORD=jy4KRHFTiix7szDEuOkCCMBG386ZNxYNEesBG6w4fsAzYOEAuRsaBJkNNAHBfHS9
+
+# Database
+
+# Export helper env vars to make our life easier with psql
+PGHOST=postgres
+PGPORT=5432
+PGUSER=psEFhTUkzjtXzEhsxtSiTAooezSRXwRx
+PGDATABASE=etlman
+PGPASSWORD=SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH
+
+# Helper DB URLs
+DATABASE_URL=postgresql://psEFhTUkzjtXzEhsxtSiTAooezSRXwRx:SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH@postgres:5432/etlman
+DATABASE_URL_SAMPLEDB=postgresql://psEFhTUkzjtXzEhsxtSiTAooezSRXwRx:SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH@postgres:5432/sampledb

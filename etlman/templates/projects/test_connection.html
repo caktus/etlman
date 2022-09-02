@@ -1,0 +1,12 @@
+{% if success %}
+<h2>Connected!</h2>
+<p>Some tables we see...</p>
+<ul>
+    {% for table_name in table_names|slice:":5" %}
+    <li>{{ table_name }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<h2>Failed!</h2>
+<p>{{ message }}</p>
+{% endif %}
