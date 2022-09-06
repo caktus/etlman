@@ -11,7 +11,13 @@ from etlman.projects.authorizers import (
     user_is_authenticated,
     user_is_project_collaborator,
 )
-from etlman.projects.forms import DataInterfaceForm, PipelineForm, ProjectForm, StepForm
+from etlman.projects.forms import (
+    DataInterfaceForm,
+    DataInterfaceHtmxForm,
+    PipelineForm,
+    ProjectForm,
+    StepForm,
+)
 from etlman.projects.models import Collaborator, Pipeline, Project, Step
 
 
@@ -80,8 +86,8 @@ def new_project(request):
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(saved_project.pk,))
             )
-
-    form = ProjectForm()
+    else:
+        form = ProjectForm()
     context = {"form": form, "username": username}
     return render(request, "projects/new_project.html", context)
 
@@ -215,21 +221,32 @@ def clear_step_wizard_session_variables(request):
 
 @authorize(user_is_project_collaborator)
 def test_db_connection_string(request, project_id):
-    # Should the form be validated prior to this code running, Tobias?
-    connection_string = request.POST["data_interface-connection_string"]
-    try:
-        success = True
-        pg_engine = create_engine(connection_string)
-    except Exception as e:
-        success = False
-        message = f"We were unable to connect to the database. \n {e}"
-        table_names = ""
-    if success:
-        message = "Database connection successful!"
-        pg_engine.connect()
-        table_names = pg_engine.table_names()
+    # - Instead of calling table_names() below, execute the sql_query provided by the user
+    # - Pass the results into the template, and display the first 20 of them in a bootstrap table
+    if request.method == "POST":
+        data_columns, data_table = [], []
+        success, message = False, ""
+        form = DataInterfaceHtmxForm(request.POST)
+        if form.is_valid():
+            try:
+                success = True
+                engine = create_engine(form.cleaned_data["connection_string"])
+                conn = engine.connect()
+                cursor = conn.exec_driver_sql(form.cleaned_data["sql_query"])
+                # Using a blanket except statement because we do not know
+                # what database driver the user is using.
+            except Exception as e:
+                success = False
+                message = f"We were unable to connect to the database. \n {e}"
+            if success:
+                message = "Database connection successful!"
+                print("Z" * 25)
+                print(data_columns)
+                data_columns = [desc[0] for desc in cursor.cursor.description]
+                data_table = cursor.fetchmany(20)
     context = {
-        "table_names": table_names,
+        "data_columns": data_columns,
+        "data_table": data_table,
         "success": success,
         "message": message,
     }

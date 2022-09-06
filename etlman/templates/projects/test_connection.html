@@ -1,11 +1,22 @@
 {% if success %}
 <h2>Connected!</h2>
-<p>Some tables we see...</p>
-<ul>
-    {% for table_name in table_names|slice:":5" %}
-    <li>{{ table_name }}</li>
-    {% endfor %}
-</ul>
+<!-- https://getbootstrap.com/docs/4.0/content/tables/ -->
+<table class="table">
+    <thead>
+        <tr>
+            {% for header in data_columns %}
+            <th scope="col">{{ header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data_table %}
+        <tr>
+            {% for value in row %}<td>{{ value }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% else %}
 <h2>Failed!</h2>
 <p>{{ message }}</p>

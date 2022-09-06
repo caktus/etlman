@@ -119,6 +119,10 @@ class TestMultiformStep2:
         }
         session.save()
 
+    def assert_session_cleared(self, client):
+        assert SessionKeyEnum.DATA_INTERFACE.value not in client.session
+        assert SessionKeyEnum.PIPELINE.value not in client.session
+
     def test_new_step_get(self, nonadmin_client, project):
         pipeline = PipelineFactory(project=project)
         datainterface = DataInterfaceFactory(project=project)
@@ -170,6 +174,7 @@ class TestMultiformStep2:
         assert (
             datainterface.connection_string == created_data_interface.connection_string
         )
+        self.assert_session_cleared(nonadmin_client)
 
     def test_back_new_step_post(self, nonadmin_client, project):
         pipeline = PipelineFactory.build(project=project)
@@ -252,6 +257,7 @@ class TestMultiformStep2:
         edited_step_model = Step.objects.get(pk=step_model.pk)
         assert data["name"] == edited_step_model.name
         assert data["script"] == edited_step_model.script
+        self.assert_session_cleared(nonadmin_client)
 
     def test_back_edit_step_post(self, nonadmin_user, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
