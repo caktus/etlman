@@ -5,7 +5,7 @@
     require(['vs/editor/editor.main'], () => {
         monacoEditor{{ widget.name }} = monaco.editor.create(document.getElementById("id_{{ widget.name }}"), {
             theme: 'vs-dark',
-            model: monaco.editor.createModel(`{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`, "python"),
+            model: monaco.editor.createModel(`{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`),
             wordWrap: 'on',
             automaticLayout: true,
             minimap: {
@@ -23,6 +23,9 @@
                 e.formData.append('{{ widget.name }}', monacoEditor{{ widget.name }}.getModel().getValue());
             });
         }
+        // NOTE: This line hard codes the ID of the language dropdown menu. If this widget is ever
+        // used in another form, this line might need to change.
+        selectedLanguage(document.getElementById("id_language").value);
     });
     const selectedLanguage = lang => {
         monaco.editor.setModelLanguage(monacoEditor{{ widget.name }}.getModel(), lang);
