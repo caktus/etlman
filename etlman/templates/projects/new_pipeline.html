@@ -2,8 +2,7 @@
 {% load crispy_forms_tags %}
 {% block content %}
 <div class="container">
-    <form method="post" hx-post="{% url 'projects:test_connection' current_project.pk %}"
-        hx-headers='{"X-CSRFToken": "{% csrf_token %}"}' hx-target="#result">
+    <form method="post">
         {% csrf_token %}
         {{ form_pipeline|crispy }}
         {{ form_datainterface|crispy }}
@@ -13,7 +12,12 @@
                         class="btn btn-danger">Cancel</button></a>
             </div>
             <div class="col">
-                <button type="submit" class="btn btn-info">Test Pipeline Input</button>
+                <button type="submit" class="btn btn-info"
+                    hx-post="{% url 'projects:test_connection' current_project.pk %}"
+                    hx-headers='{"X-CSRFToken": "{% csrf_token %}"}' hx-target="#result"
+                    hx-include="[name='data_interface-connection_string']">
+                    Test Pipeline Input
+                </button>
             </div>
             <div class="col">
                 <div class="control-group">
