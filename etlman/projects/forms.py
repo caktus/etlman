@@ -19,7 +19,7 @@ class PipelineForm(forms.ModelForm):
     class Meta:
         model = Pipeline
         fields = ["name"]
-        labels = {"name": "Pipeline Name"}
+        labels = {"name": "Pipeline name"}
 
 
 class DataInterfaceForm(forms.ModelForm):
@@ -28,7 +28,7 @@ class DataInterfaceForm(forms.ModelForm):
     class Meta:
         model = DataInterface
         fields = ["name", "interface_type", "connection_string", "sql_query"]
-        labels = {"name": "Data Interface Name", "sql_query": "SQL Query"}
+        labels = {"name": "Data interface name", "sql_query": "SQL query"}
         widgets = {
             "connection_string": forms.Textarea(attrs={"rows": 3}),
         }
