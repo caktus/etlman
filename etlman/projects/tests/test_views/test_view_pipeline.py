@@ -29,6 +29,7 @@ class TestMultiformStep1:
         data = {
             "pipeline-name": pipeline.name,
             "data_interface-name": datainterface.name,
+            "data_interface-sql_query": datainterface.sql_query,
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
         }
@@ -63,6 +64,7 @@ class TestMultiformStep1:
         data = {
             "pipeline-name": "new pipeline name",
             "data_interface-name": "new data interface name",
+            "data_interface-sql_query": "new-sql-query.com",
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
         }
