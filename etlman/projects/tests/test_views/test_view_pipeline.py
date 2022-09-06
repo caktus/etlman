@@ -135,6 +135,7 @@ class TestMultiformStep2:
 
         data = {
             "name": step.name,
+            "language": step.language,
             "script": step.script,
             "save": "true",
         }
@@ -177,6 +178,7 @@ class TestMultiformStep2:
 
         data = {
             "name": "new name",
+            "language": "Python",
             "script": "new script",
             "back": "true",
         }
@@ -235,6 +237,7 @@ class TestMultiformStep2:
 
         data = {
             "name": "new name",
+            "language": "r",
             "script": "new script",
             "save": "true",
         }

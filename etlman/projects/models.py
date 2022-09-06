@@ -49,8 +49,11 @@ class Pipeline(models.Model):
 
 
 class Step(models.Model):
+    LANGUAGE_CHOICES = [("python", "Python"), ("r", "R")]
+
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
+    language = models.CharField(max_length=56, choices=LANGUAGE_CHOICES)
     script = models.TextField()
     step_order = models.PositiveIntegerField()
 
