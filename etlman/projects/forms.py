@@ -19,7 +19,7 @@ class PipelineForm(forms.ModelForm):
     class Meta:
         model = Pipeline
         fields = ["name"]
-        labels = {"name": "Pipeline Name"}
+        labels = {"name": "Pipeline name"}
 
 
 class DataInterfaceForm(forms.ModelForm):
@@ -27,16 +27,22 @@ class DataInterfaceForm(forms.ModelForm):
 
     class Meta:
         model = DataInterface
-        fields = ["name", "interface_type", "connection_string"]
-        labels = {"name": "Data Interface Name"}
+        fields = ["name", "interface_type", "connection_string", "sql_query"]
+        labels = {"name": "Data interface name", "sql_query": "SQL query"}
+        widgets = {
+            "connection_string": forms.Textarea(attrs={"rows": 3}),
+        }
 
 
 class StepForm(forms.ModelForm):
     class Meta:
         model = Step
-        fields = ["name", "script"]
+        fields = ["name", "language", "script"]
         # Customize widget for 'script' field:
         # https://stackoverflow.com/a/22250192/166053
         widgets = {
             "script": MonacoEditorWidget(),
+            "language": forms.Select(
+                attrs={"onchange": "selectedLanguage(this.value);"}
+            ),
         }
