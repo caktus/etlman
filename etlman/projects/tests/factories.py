@@ -29,6 +29,7 @@ class DataInterfaceFactory(factory.django.DjangoModelFactory):
         [key for key, _ in models.DataInterface.INTERFACE_TYPE_CHOICES]
     )
     connection_string = factory.Faker("sentence")
+    sql_query = factory.Faker("hostname")
 
     class Meta:
         model = models.DataInterface
@@ -48,6 +49,9 @@ class StepFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("name")  # file name
     script = factory.Faker("pystr")  # payload
     step_order = factory.Sequence(lambda n: n)
+    language = factory.fuzzy.FuzzyChoice(
+        [key for key, _ in models.Step.LANGUAGE_CHOICES]
+    )
 
     class Meta:
         model = models.Step

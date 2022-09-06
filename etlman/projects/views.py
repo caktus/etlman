@@ -120,7 +120,9 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
         )
         form_pipeline = PipelineForm(session_pipeline, instance=loaded_pipeline)
         form_datainterface = DataInterfaceForm(
-            session_data_interface, instance=loaded_data_interface
+            session_data_interface,
+            instance=loaded_data_interface,
+            initial={"interface_type": "database"},
         )
     context = {
         "form_pipeline": form_pipeline,

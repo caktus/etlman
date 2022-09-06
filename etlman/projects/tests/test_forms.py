@@ -11,6 +11,7 @@ class TestScriptForm:
         form = StepForm(
             data={
                 "name": sf.name,
+                "language": "python",
                 "script": sf.script,
             }
         )
