@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from sqlalchemy import create_engine
 
 from etlman.projects.authorizers import (
@@ -214,26 +215,26 @@ def clear_step_wizard_session_variables(request):
 
 
 @authorize(user_is_project_collaborator)
+@require_http_methods(["POST"])
 def test_db_connection_string(request, project_id):
-    if request.method == "POST":
-        data_columns, data_table = [], []
-        success, message = False, ""
-        form = DataInterfaceForm(request.POST)
-        if form.is_valid():
-            try:
-                success = True
-                engine = create_engine(form.cleaned_data["connection_string"])
-                conn = engine.connect()
-                cursor = conn.exec_driver_sql(form.cleaned_data["sql_query"])
-                # Using a blanket except statement because we do not know
-                # what database driver the user is using.
-            except Exception as e:
-                success = False
-                message = f"We were unable to connect to the database. \n {e}"
-            if success:
-                message = "Database connection successful!"
-                data_columns = [desc[0] for desc in cursor.cursor.description]
-                data_table = cursor.fetchmany(20)
+    data_columns, data_table = [], []
+    success, message = False, ""
+    form = DataInterfaceForm(request.POST)
+    if form.is_valid():
+        try:
+            success = True
+            engine = create_engine(form.cleaned_data["connection_string"])
+            conn = engine.connect()
+            cursor = conn.exec_driver_sql(form.cleaned_data["sql_query"])
+            # Using a blanket except statement because we do not know
+            # what database driver the user is using.
+        except Exception as e:
+            success = False
+            message = f"We were unable to connect to the database. \n {e}"
+        if success:
+            message = "Database connection successful!"
+            data_columns = [desc[0] for desc in cursor.cursor.description]
+            data_table = cursor.fetchmany(20)
     context = {
         "data_columns": data_columns,
         "data_table": data_table,

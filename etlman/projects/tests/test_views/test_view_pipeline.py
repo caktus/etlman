@@ -1,3 +1,4 @@
+import os
 from http import HTTPStatus
 
 import pytest
@@ -94,6 +95,127 @@ class TestMultiformStep1:
         assert pipeline.name == db_pipeline.name
         db_data_interface = DataInterface.objects.get(pk=datainterface.pk)
         assert datainterface.name == db_data_interface.name
+
+
+@pytest.mark.django_db
+class TestDbConnectionTestView:
+    def test_post_only_view(self, nonadmin_client, project):
+        "The view returns an HTTP 405 (method not allowed) when given a GET request."
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": ["database"],
+            "data_interface-connection_string": "some_str",
+            "data_interface-sql_query": "some_query",
+        }
+
+        response = nonadmin_client.get(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.numerator
+
+    def test_blank_form_post_data_renders_errors(self, nonadmin_client, project):
+        """
+        When given an empty field in the POST data, the 'form' variable
+        in the context includes the applicable errors.
+        """
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": ["database"],
+            # "data_interface-connection_string": # purposefully empty
+            # "data_interface-sql_query":  # purposefully empty
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = {
+            "connection_string": ["This field is required."],
+            "sql_query": ["This field is required."],
+        }
+        assert err_msg == response.context["form"].errors
+        # https://adamj.eu/tech/2020/06/15/how-to-unit-test-a-django-form/
+
+    def test_invalid_db_name_error(self, nonadmin_client, project):
+        """
+        An otherwise valid DATABASE_URL with a non-existent table includes
+        the applicable error message in response.context["message"].
+        """
+        non_db_name = "etlman_non_existent_db"
+        connection_string = (
+            os.getenv("DATABASE_URL")
+            .strip("etlman")
+            .replace("postgres", "postgresql", 1)
+            + non_db_name
+        )
+        sql_query = "SELECT table_name, FROM INFORMATION_SCHEMA.COLUMNS"
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": ["database"],
+            "data_interface-connection_string": connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = f'database "{non_db_name}" does not exist'
+        assert err_msg in response.context["message"]
+
+    def test_invalid_sql_query(self, nonadmin_client, project):
+        """
+        A valid DATABASE_URL with an invalid SQL query includes the applicable
+        error message in response.context["message"].
+        """
+        connection_string = os.getenv("DATABASE_URL").replace(
+            "postgres", "postgresql", 1
+        )
+        sql_query = "invalid SQL query"
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": ["database"],
+            "data_interface-connection_string": connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = "[SQL: invalid SQL query]"
+        assert err_msg in response.context["message"]
+
+    def test_successful_query(self, nonadmin_client, project):
+        """
+        A valid connection string and query includes the correct data_columns
+        and data_table in response.context.
+        """
+
+        connection_string = os.getenv("DATABASE_URL").replace(
+            "postgres", "postgresql", 1
+        )
+        sql_query = (
+            "SELECT table_name, data_type, table_schema FROM INFORMATION_SCHEMA.COLUMNS"
+        )
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": ["database"],
+            "data_interface-connection_string": connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = "Database connection successful!"
+        assert err_msg in response.context["message"]
 
 
 @pytest.mark.django_db
