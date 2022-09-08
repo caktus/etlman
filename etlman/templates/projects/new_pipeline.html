@@ -5,7 +5,9 @@
     <form method="post">
         {% csrf_token %}
         {{ form_pipeline|crispy }}
-        {{ form_datainterface|crispy }}
+        <div id="data_interface_form_htmx_oob">
+            {{ form_datainterface|crispy }}
+        </div>
         <div class="row pt-4">
             <div class="col">
                 <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="button"
@@ -30,7 +32,7 @@
     </form>
 
     <section class="pt-5 text-center">
-        <p id="result"><em>Awaiting interaction...</em></p>
+        <div id="result"><em>Awaiting interaction...</em></div>
     </section>
 </div>
 {% endblock content %}

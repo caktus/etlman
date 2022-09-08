@@ -34,14 +34,6 @@ class DataInterfaceForm(forms.ModelForm):
         }
 
 
-class DataInterfaceHtmxForm(forms.ModelForm):
-    prefix = "data_interface"
-
-    class Meta:
-        model = DataInterface
-        fields = ["connection_string", "sql_query"]
-
-
 class StepForm(forms.ModelForm):
     class Meta:
         model = Step

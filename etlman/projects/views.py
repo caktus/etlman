@@ -11,13 +11,7 @@ from etlman.projects.authorizers import (
     user_is_authenticated,
     user_is_project_collaborator,
 )
-from etlman.projects.forms import (
-    DataInterfaceForm,
-    DataInterfaceHtmxForm,
-    PipelineForm,
-    ProjectForm,
-    StepForm,
-)
+from etlman.projects.forms import DataInterfaceForm, PipelineForm, ProjectForm, StepForm
 from etlman.projects.models import Collaborator, Pipeline, Project, Step
 
 
@@ -224,7 +218,7 @@ def test_db_connection_string(request, project_id):
     if request.method == "POST":
         data_columns, data_table = [], []
         success, message = False, ""
-        form = DataInterfaceHtmxForm(request.POST)
+        form = DataInterfaceForm(request.POST)
         if form.is_valid():
             try:
                 success = True
@@ -245,5 +239,6 @@ def test_db_connection_string(request, project_id):
         "data_table": data_table,
         "success": success,
         "message": message,
+        "form": form,
     }
-    return render(request, "projects/test_connection.html", context)
+    return render(request, "projects/_test_connection.html", context)
