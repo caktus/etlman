@@ -221,8 +221,6 @@ def clear_step_wizard_session_variables(request):
 
 @authorize(user_is_project_collaborator)
 def test_db_connection_string(request, project_id):
-    # - Instead of calling table_names() below, execute the sql_query provided by the user
-    # - Pass the results into the template, and display the first 20 of them in a bootstrap table
     if request.method == "POST":
         data_columns, data_table = [], []
         success, message = False, ""
@@ -240,8 +238,6 @@ def test_db_connection_string(request, project_id):
                 message = f"We were unable to connect to the database. \n {e}"
             if success:
                 message = "Database connection successful!"
-                print("Z" * 25)
-                print(data_columns)
                 data_columns = [desc[0] for desc in cursor.cursor.description]
                 data_table = cursor.fetchmany(20)
     context = {

@@ -1,23 +1,28 @@
-{% if success %}
-<h2>Connected!</h2>
-<!-- https://getbootstrap.com/docs/4.0/content/tables/ -->
-<table class="table">
-    <thead>
-        <tr>
-            {% for header in data_columns %}
-            <th scope="col">{{ header }}</th>
+<div class="container">
+    {% if success %}
+    <h2>Database Connected!</h2>
+    <p>
+        <em>Showing up to 20 rows...</em>
+    </p>
+    <!-- https://getbootstrap.com/docs/4.0/content/tables/ -->
+    <table class="table">
+        <thead>
+            <tr>
+                {% for header in data_columns %}
+                <th scope="col">{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data_table %}
+            <tr>
+                {% for value in row %}<td>{{ value }}</td>{% endfor %}
+            </tr>
             {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in data_table %}
-        <tr>
-            {% for value in row %}<td>{{ value }}</td>{% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<h2>Failed!</h2>
-<p>{{ message }}</p>
-{% endif %}
+        </tbody>
+    </table>
+    {% else %}
+    <h2>Failed!</h2>
+    <p>{{ message }}</p>
+    {% endif %}
+</div>
