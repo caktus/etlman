@@ -105,16 +105,8 @@ class TestDbConnectionTestView:
     def test_post_only_view(self, nonadmin_client, project):
         "The view returns an HTTP 405 (method not allowed) when given a GET request."
 
-        data = {
-            "data_interface-name": "sample_name",
-            "data_interface-interface_type": ["database"],
-            "data_interface-connection_string": "some_str",
-            "data_interface-sql_query": "some_query",
-        }
-
         response = nonadmin_client.get(
-            reverse("projects:test_connection", args=(project.pk,)),
-            data=data,
+            reverse("projects:test_connection", args=(project.pk,))
         )
         assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.numerator
 
@@ -125,7 +117,7 @@ class TestDbConnectionTestView:
         """
         data = {
             "data_interface-name": "sample_name",
-            "data_interface-interface_type": ["database"],
+            "data_interface-interface_type": "database",
             # "data_interface-connection_string": # purposefully empty
             # "data_interface-sql_query":  # purposefully empty
         }
@@ -139,7 +131,6 @@ class TestDbConnectionTestView:
             "sql_query": ["This field is required."],
         }
         assert err_msg == response.context["form"].errors
-        # https://adamj.eu/tech/2020/06/15/how-to-unit-test-a-django-form/
 
     def test_invalid_db_name_error(self, nonadmin_client, project):
         """
@@ -148,15 +139,15 @@ class TestDbConnectionTestView:
         """
         non_db_name = "etlman_non_existent_db"
         sql_query = "SELECT table_name, FROM INFORMATION_SCHEMA.COLUMNS"
-
+        connection_string = "/".join(
+            [self.connection_string.rsplit("/", 1)[0], "etlman_non_existent_db"]
+        )
         data = {
             "data_interface-name": "sample_name",
             "data_interface-interface_type": ["database"],
-            "data_interface-connection_string": self.connection_string.strip("etlman")
-            + non_db_name,
+            "data_interface-connection_string": connection_string,
             "data_interface-sql_query": sql_query,
         }
-
         response = nonadmin_client.post(
             reverse("projects:test_connection", args=(project.pk,)),
             data=data,
