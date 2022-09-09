@@ -99,6 +99,9 @@ class TestMultiformStep1:
 
 @pytest.mark.django_db
 class TestDbConnectionTestView:
+
+    connection_string = os.getenv("DATABASE_URL").replace("postgres", "postgresql", 1)
+
     def test_post_only_view(self, nonadmin_client, project):
         "The view returns an HTTP 405 (method not allowed) when given a GET request."
 
@@ -144,18 +147,13 @@ class TestDbConnectionTestView:
         the applicable error message in response.context["message"].
         """
         non_db_name = "etlman_non_existent_db"
-        connection_string = (
-            os.getenv("DATABASE_URL")
-            .strip("etlman")
-            .replace("postgres", "postgresql", 1)
-            + non_db_name
-        )
         sql_query = "SELECT table_name, FROM INFORMATION_SCHEMA.COLUMNS"
 
         data = {
             "data_interface-name": "sample_name",
             "data_interface-interface_type": ["database"],
-            "data_interface-connection_string": connection_string,
+            "data_interface-connection_string": self.connection_string.strip("etlman")
+            + non_db_name,
             "data_interface-sql_query": sql_query,
         }
 
@@ -171,15 +169,12 @@ class TestDbConnectionTestView:
         A valid DATABASE_URL with an invalid SQL query includes the applicable
         error message in response.context["message"].
         """
-        connection_string = os.getenv("DATABASE_URL").replace(
-            "postgres", "postgresql", 1
-        )
         sql_query = "invalid SQL query"
 
         data = {
             "data_interface-name": "sample_name",
             "data_interface-interface_type": ["database"],
-            "data_interface-connection_string": connection_string,
+            "data_interface-connection_string": self.connection_string,
             "data_interface-sql_query": sql_query,
         }
 
@@ -195,10 +190,6 @@ class TestDbConnectionTestView:
         A valid connection string and query includes the correct data_columns
         and data_table in response.context.
         """
-
-        connection_string = os.getenv("DATABASE_URL").replace(
-            "postgres", "postgresql", 1
-        )
         sql_query = (
             "SELECT table_name, data_type, table_schema FROM INFORMATION_SCHEMA.COLUMNS"
         )
@@ -206,7 +197,7 @@ class TestDbConnectionTestView:
         data = {
             "data_interface-name": "sample_name",
             "data_interface-interface_type": ["database"],
-            "data_interface-connection_string": connection_string,
+            "data_interface-connection_string": self.connection_string,
             "data_interface-sql_query": sql_query,
         }
 
