@@ -103,7 +103,11 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
         form_datainterface = DataInterfaceForm(
             request.POST, instance=loaded_data_interface
         )
-        if form_pipeline.is_valid() and form_datainterface.is_valid():
+        if (
+            "next" in request.POST
+            and form_pipeline.is_valid()
+            and form_datainterface.is_valid()
+        ):
             # Use session for persistence between steps in the wizard due to potential
             # size of 'script' field in step 2.
             request.session[SessionKeyEnum.PIPELINE.value] = form_pipeline.data
@@ -115,6 +119,12 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             else:
                 url = reverse("projects:new_step", args=(project.pk,))
             return HttpResponseRedirect(url)
+        elif "cancel" in request.POST:
+            clear_step_wizard_session_variables(request)
+            return HttpResponseRedirect(
+                reverse("projects:list_pipeline", args=(project.pk,))
+            )
+
     else:  # GET
         session_pipeline = request.session.get(SessionKeyEnum.PIPELINE.value, None)
         session_data_interface = request.session.get(

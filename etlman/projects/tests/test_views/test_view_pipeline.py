@@ -363,7 +363,7 @@ class TestMultiformStep2:
         assert data["script"] == edited_step_model.script
         self.assert_session_cleared(nonadmin_client)
 
-    def test_back_edit_step_post(self, nonadmin_user, nonadmin_client, project):
+    def test_back_edit_step_post(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
         datainterface = pipeline.input

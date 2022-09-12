@@ -10,7 +10,7 @@
         </div>
         <div class="row pt-4">
             <div class="col">
-                <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="button"
+                <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="submit" name="cancel"
                         class="btn btn-danger">Cancel</button></a>
             </div>
             <div class="col text-center">
@@ -24,7 +24,7 @@
             <div class="col">
                 <div class="control-group">
                     <div class="d-flex flex-row-reverse">
-                        <button type="submit" class="btn btn-primary">Next</button>
+                        <button type="submit" name="next" class="btn btn-primary">Next</button>
                     </div>
                 </div>
             </div>
