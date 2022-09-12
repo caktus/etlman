@@ -32,11 +32,12 @@
 
   <!-- place project specific Javascript in this file -->
   <script defer src="{% static 'js/project.min.js' %}"></script>
-  {% if debug %}
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
-  <script src="{% static 'js/debug.js' %}" defer></script>
   <script src="{% static 'js/event-header.js' %}" defer></script>
+  {% if debug %}
+  <script src="{% static 'js/debug.js' %}" defer></script>
   {% endif %}
+
   {% django_htmx_script %}
   <!-- How to download HTMX - https://django-htmx.readthedocs.io/en/latest/installation.html#:~:text=Install%20htmx%23,debug.js%27%20%25%7D%22%20defer%3E%3C/script%3E -->
   {% endblock javascript %}
