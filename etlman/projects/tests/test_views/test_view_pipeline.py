@@ -144,7 +144,7 @@ class TestDbConnectionTestView:
         )
         data = {
             "data_interface-name": "sample_name",
-            "data_interface-interface_type": ["database"],
+            "data_interface-interface_type": "database",
             "data_interface-connection_string": connection_string,
             "data_interface-sql_query": sql_query,
         }
@@ -164,7 +164,7 @@ class TestDbConnectionTestView:
 
         data = {
             "data_interface-name": "sample_name",
-            "data_interface-interface_type": ["database"],
+            "data_interface-interface_type": "database",
             "data_interface-connection_string": self.connection_string,
             "data_interface-sql_query": sql_query,
         }
@@ -187,7 +187,7 @@ class TestDbConnectionTestView:
 
         data = {
             "data_interface-name": "sample_name",
-            "data_interface-interface_type": ["database"],
+            "data_interface-interface_type": "database",
             "data_interface-connection_string": self.connection_string,
             "data_interface-sql_query": sql_query,
         }
@@ -318,7 +318,7 @@ class TestMultiformStep2:
 
         data = {
             "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
+            "interface_type": "database",
             "connection_string": [datainterface.connection_string],
             "script": step_model.script,
         }
