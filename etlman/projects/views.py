@@ -23,6 +23,7 @@ class MessagesEnum(enum.Enum):
     PIPELINE_CREATED = "Pipeline '{name}' added successfully"
     PIPELINE_UPDATED = "Pipeline '{name}' updated successfully"
     PIPELINE_DELETED = "Pipeline '{name}' deleted successfully"
+    PIPELINE_IN_PROGRESS_MSG = "This form contains unsaved changes"
 
 
 class SessionKeyEnum(enum.Enum):
@@ -119,7 +120,8 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             else:
                 url = reverse("projects:new_step", args=(project.pk,))
             return HttpResponseRedirect(url)
-        elif "cancel" in request.POST:
+        # Clear session if user clicks "Cancel"
+        if "cancel" in request.POST:
             clear_step_wizard_session_variables(request)
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
@@ -136,6 +138,12 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             instance=loaded_data_interface,
             initial={"interface_type": "database"},
         )
+        if session_pipeline and session_data_interface:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                MessagesEnum.PIPELINE_IN_PROGRESS_MSG.value,
+            )
     context = {
         "form_pipeline": form_pipeline,
         "form_datainterface": form_datainterface,

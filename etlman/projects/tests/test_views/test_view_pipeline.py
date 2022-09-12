@@ -33,6 +33,7 @@ class TestMultiformStep1:
             "data_interface-sql_query": datainterface.sql_query,
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
+            "next": "true",
         }
         response = nonadmin_client.post(
             reverse("projects:new_pipeline", args=(project.pk,)), data=data
@@ -68,6 +69,7 @@ class TestMultiformStep1:
             "data_interface-sql_query": "new-sql-query.com",
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
+            "next": "true",
         }
         response = nonadmin_client.post(
             reverse("projects:edit_pipeline", args=(project.pk, pipeline.pk)),
@@ -309,6 +311,27 @@ class TestMultiformStep2:
             nonadmin_client.session[SessionKeyEnum.STEP.value]["script"]
             == data["script"]
         )
+
+    def test_cancel_new_step_post(self, nonadmin_client, project):
+        pipeline = PipelineFactory.build(project=project)
+        datainterface = pipeline.input
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+        data = {
+            "name": "new name",
+            "language": "Python",
+            "script": "new script",
+            "cancel": "true",
+        }
+        response = nonadmin_client.post(
+            reverse("projects:new_pipeline", args=(project.pk,)),
+            data=data,
+            follow=True,
+        )
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert Pipeline.objects.count() == 0
+        assert DataInterface.objects.count() == 0
+        assert Step.objects.count() == 0
 
     def test_edit_step_get(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
