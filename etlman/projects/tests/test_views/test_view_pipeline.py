@@ -1,3 +1,4 @@
+import os
 from http import HTTPStatus
 
 import pytest
@@ -97,6 +98,109 @@ class TestMultiformStep1:
 
 
 @pytest.mark.django_db
+class TestDbConnectionTestView:
+
+    connection_string = os.getenv("DATABASE_URL").replace("postgres", "postgresql", 1)
+
+    def test_post_only_view(self, nonadmin_client, project):
+        "The view returns an HTTP 405 (method not allowed) when given a GET request."
+
+        response = nonadmin_client.get(
+            reverse("projects:test_connection", args=(project.pk,))
+        )
+        assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.numerator
+
+    def test_blank_form_post_data_renders_errors(self, nonadmin_client, project):
+        """
+        When given an empty field in the POST data, the 'form' variable
+        in the context includes the applicable errors.
+        """
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": "database",
+            # "data_interface-connection_string": # purposefully empty
+            # "data_interface-sql_query":  # purposefully empty
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = {
+            "connection_string": ["This field is required."],
+            "sql_query": ["This field is required."],
+        }
+        assert err_msg == response.context["form"].errors
+
+    def test_invalid_db_name_error(self, nonadmin_client, project):
+        """
+        An otherwise valid DATABASE_URL with a non-existent table includes
+        the applicable error message in response.context["message"].
+        """
+        non_db_name = "etlman_non_existent_db"
+        sql_query = "SELECT table_name, FROM INFORMATION_SCHEMA.COLUMNS"
+        connection_string = "/".join(
+            [self.connection_string.rsplit("/", 1)[0], "etlman_non_existent_db"]
+        )
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": "database",
+            "data_interface-connection_string": connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = f'database "{non_db_name}" does not exist'
+        assert err_msg in response.context["message"]
+
+    def test_invalid_sql_query(self, nonadmin_client, project):
+        """
+        A valid DATABASE_URL with an invalid SQL query includes the applicable
+        error message in response.context["message"].
+        """
+        sql_query = "invalid SQL query"
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": "database",
+            "data_interface-connection_string": self.connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = "[SQL: invalid SQL query]"
+        assert err_msg in response.context["message"]
+
+    def test_successful_query(self, nonadmin_client, project):
+        """
+        A valid connection string and query includes the correct data_columns
+        and data_table in response.context.
+        """
+        sql_query = (
+            "SELECT table_name, data_type, table_schema FROM INFORMATION_SCHEMA.COLUMNS"
+        )
+
+        data = {
+            "data_interface-name": "sample_name",
+            "data_interface-interface_type": "database",
+            "data_interface-connection_string": self.connection_string,
+            "data_interface-sql_query": sql_query,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:test_connection", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = "Database connection successful!"
+        assert err_msg in response.context["message"]
+
+
+@pytest.mark.django_db
 class TestMultiformStep2:
     def test_edit_script_view_status_code_forbidden(self, client, project):
         response = client.get(
@@ -118,6 +222,10 @@ class TestMultiformStep2:
             for key in PipelineForm._meta.fields
         }
         session.save()
+
+    def assert_session_cleared(self, client):
+        assert SessionKeyEnum.DATA_INTERFACE.value not in client.session
+        assert SessionKeyEnum.PIPELINE.value not in client.session
 
     def test_new_step_get(self, nonadmin_client, project):
         pipeline = PipelineFactory(project=project)
@@ -170,6 +278,7 @@ class TestMultiformStep2:
         assert (
             datainterface.connection_string == created_data_interface.connection_string
         )
+        self.assert_session_cleared(nonadmin_client)
 
     def test_back_new_step_post(self, nonadmin_client, project):
         pipeline = PipelineFactory.build(project=project)
@@ -209,7 +318,7 @@ class TestMultiformStep2:
 
         data = {
             "name": [pipeline.name, datainterface.name],
-            "interface_type": ["database"],
+            "interface_type": "database",
             "connection_string": [datainterface.connection_string],
             "script": step_model.script,
         }
@@ -252,6 +361,7 @@ class TestMultiformStep2:
         edited_step_model = Step.objects.get(pk=step_model.pk)
         assert data["name"] == edited_step_model.name
         assert data["script"] == edited_step_model.script
+        self.assert_session_cleared(nonadmin_client)
 
     def test_back_edit_step_post(self, nonadmin_user, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))

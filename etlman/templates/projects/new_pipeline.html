@@ -5,11 +5,21 @@
     <form method="post">
         {% csrf_token %}
         {{ form_pipeline|crispy }}
-        {{ form_datainterface|crispy }}
-        <div class="row pt-3">
+        <div id="data_interface_form_htmx_oob">
+            {{ form_datainterface|crispy }}
+        </div>
+        <div class="row pt-4">
             <div class="col">
                 <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="button"
                         class="btn btn-danger">Cancel</button></a>
+            </div>
+            <div class="col text-center">
+                <button type="submit" class="btn btn-info"
+                    hx-post="{% url 'projects:test_connection' current_project.pk %}"
+                    hx-headers='{"X-CSRFToken": "{% csrf_token %}"}' hx-target="#result"
+                    hx-include="[name='data_interface-connection_string']">
+                    Test Pipeline Input
+                </button>
             </div>
             <div class="col">
                 <div class="control-group">
@@ -20,5 +30,9 @@
             </div>
         </div>
     </form>
+
+    <section class="pt-5 text-center">
+        <div id="result"><em>Awaiting interaction...</em></div>
+    </section>
 </div>
 {% endblock content %}
