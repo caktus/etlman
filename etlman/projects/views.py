@@ -200,7 +200,17 @@ def new_step_step2(request, project_id, step_id=None):
             "name": session_pipeline["pipeline-name"] + "_script",
             "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
         }
-        form_step = StepForm(instance=step, initial=initial)
+        if not step:
+            form_step = StepForm(instance=step, initial=initial)
+        else:
+            form_step = StepForm(
+                instance=step,
+                initial={
+                    "name": step.name,
+                    "language": step.language,
+                    "script": step.script,
+                },
+            )
 
     context = {
         "form_step": form_step,
