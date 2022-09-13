@@ -1,6 +1,7 @@
 from django.urls import path
 
 from etlman.projects.views import (
+    clear_step_wizard_session_view,
     confirm_delete_pipeline,
     delete_pipeline,
     list_pipeline,
@@ -43,5 +44,10 @@ urlpatterns = [
         "<int:project_id>/test-connection/",
         view=test_db_connection_string,
         name="test_connection",
+    ),
+    path(
+        "<int:project_id>/clear-wizard-session/",
+        view=clear_step_wizard_session_view,
+        name="clear_wizard_session",
     ),
 ]

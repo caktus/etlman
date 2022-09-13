@@ -120,13 +120,6 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             else:
                 url = reverse("projects:new_step", args=(project.pk,))
             return HttpResponseRedirect(url)
-        # Clear session if user clicks "Cancel"
-        if "cancel" in request.POST:
-            clear_step_wizard_session_variables(request)
-            return HttpResponseRedirect(
-                reverse("projects:list_pipeline", args=(project.pk,))
-            )
-
     else:  # GET
         session_pipeline = request.session.get(SessionKeyEnum.PIPELINE.value, None)
         session_data_interface = request.session.get(
@@ -230,6 +223,13 @@ def new_step_step2(request, project_id, step_id=None):
 def clear_step_wizard_session_variables(request):
     for session_key in SessionKeyEnum:
         request.session.pop(session_key.value, None)
+
+
+@authorize(user_is_project_collaborator)
+def clear_step_wizard_session_view(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    clear_step_wizard_session_variables(request)
+    return HttpResponseRedirect(reverse("projects:list_pipeline", args=(project.pk,)))
 
 
 @authorize(user_is_project_collaborator)

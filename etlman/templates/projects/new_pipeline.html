@@ -10,8 +10,8 @@
         </div>
         <div class="row pt-4">
             <div class="col">
-                <a href="{% url 'projects:list_pipeline' current_project.pk %}"><button type="submit" name="cancel"
-                        class="btn btn-danger">Cancel</button></a>
+                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk %}"
+                    class="btn btn-danger">Cancel</a>
             </div>
             <div class="col text-center">
                 <button type="submit" class="btn btn-info"

@@ -312,27 +312,6 @@ class TestMultiformStep2:
             == data["script"]
         )
 
-    def test_cancel_new_step_post(self, nonadmin_client, project):
-        pipeline = PipelineFactory.build(project=project)
-        datainterface = pipeline.input
-        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
-        data = {
-            "name": "new name",
-            "language": "Python",
-            "script": "new script",
-            "cancel": "true",
-        }
-        response = nonadmin_client.post(
-            reverse("projects:new_pipeline", args=(project.pk,)),
-            data=data,
-            follow=True,
-        )
-
-        assert response.status_code == HTTPStatus.OK.numerator
-        assert Pipeline.objects.count() == 0
-        assert DataInterface.objects.count() == 0
-        assert Step.objects.count() == 0
-
     def test_edit_step_get(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
@@ -414,3 +393,17 @@ class TestMultiformStep2:
             nonadmin_client.session[SessionKeyEnum.STEP.value]["name"] == data["name"]
         )
         assert pipeline.name in str(response.content)
+
+
+@pytest.mark.django_db
+class TestClearSession:
+    def test_cancel_new_step_get(self, nonadmin_client, project):
+        response = nonadmin_client.get(
+            reverse("projects:clear_wizard_session", args=(project.pk,)),
+            follow=True,
+        )
+
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert Pipeline.objects.count() == 0
+        assert DataInterface.objects.count() == 0
+        assert Step.objects.count() == 0
