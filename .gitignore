@@ -276,7 +276,7 @@ etlman/media/
 project.css
 project.min.css
 vendors.js
-*.min.js
+# *.min.js
 .env
 .envs/*
 !.envs/.local/
