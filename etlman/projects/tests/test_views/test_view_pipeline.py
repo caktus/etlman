@@ -315,22 +315,14 @@ class TestMultiformStep2:
         pipeline = step_model.pipeline
         datainterface = pipeline.input
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
-
-        data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": "database",
-            "connection_string": [datainterface.connection_string],
-            "script": step_model.script,
-        }
-        response = nonadmin_client.post(
+        response = nonadmin_client.get(
             reverse(
                 "projects:edit_step",
                 kwargs={
                     "project_id": project.id,
                     "step_id": step_model.pk,
                 },
-            ),
-            data=data,
+            )
         )
 
         assert response.status_code == HTTPStatus.OK.numerator
