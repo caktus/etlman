@@ -33,7 +33,6 @@ class TestMultiformStep1:
             "data_interface-sql_query": datainterface.sql_query,
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
-            "next": "true",
         }
         response = nonadmin_client.post(
             reverse("projects:new_pipeline", args=(project.pk,)), data=data
@@ -69,7 +68,6 @@ class TestMultiformStep1:
             "data_interface-sql_query": "new-sql-query.com",
             "data_interface-interface_type": "database",
             "data_interface-connection_string": datainterface.connection_string,
-            "next": "true",
         }
         response = nonadmin_client.post(
             reverse("projects:edit_pipeline", args=(project.pk, pipeline.pk)),
