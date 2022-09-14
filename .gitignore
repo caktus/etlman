@@ -276,6 +276,9 @@ etlman/media/
 project.css
 project.min.css
 vendors.js
+etlman/static/js/project.min.js
+etlman/static/js/vendors.min.js
+
 # *.min.js
 .env
 .envs/*
