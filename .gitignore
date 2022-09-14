@@ -275,10 +275,8 @@ etlman/media/
 .ipython/
 project.css
 project.min.css
-# vendors.js
 project.min.js
 vendors.min.js
-# *.min.js
 .env
 .envs/*
 !.envs/.local/
