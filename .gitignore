@@ -275,7 +275,7 @@ etlman/media/
 .ipython/
 project.css
 project.min.css
-vendors.js
+# vendors.js
 project.min.js
 vendors.min.js
 # *.min.js
