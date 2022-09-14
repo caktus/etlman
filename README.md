@@ -82,7 +82,7 @@ or
 (etlman-venv)$ docker-compose up -d
 ```
 
-Note: adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
+**Note**: adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
 
 ### Not Using Docker
 
@@ -98,7 +98,7 @@ docker-compose run --rm django bash
 ```
 
 **7. Migrate and Create a super user**
-Note: When creating a super user, you must provide an email address. If you fail to provide an email address, you will not be able to verify your account (via the link in the email printed to the console) nor login to the system.
+**Note**: When creating a super user, you must provide an email address. If you fail to provide an email address, you will not be able to verify your account (via the link in the email printed to the console) nor login to the system.
 
 ```
 python manage.py migrate
