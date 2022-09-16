@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from django.urls import reverse
 
-from etlman.projects.forms import DataInterfaceForm, PipelineForm
+from etlman.projects.forms import DataInterfaceForm, PipelineForm, StepForm
 from etlman.projects.models import DataInterface, Pipeline, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
@@ -45,6 +45,7 @@ class TestMultiformStep1:
         )
         # Check session for saved values
         assert (
+            # Import func and replace SessionKeyEnum.PIPELINE.value
             nonadmin_client.session[SessionKeyEnum.PIPELINE.value]["pipeline-name"]
             == data["pipeline-name"]
         )
@@ -211,7 +212,7 @@ class TestMultiformStep2:
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Forgot Password" in str(response.content)
 
-    def save_step2_data_in_session(self, client, pipeline, datainterface):
+    def save_step2_data_in_session(self, client, pipeline, datainterface, step=None):
         session = client.session
         session[SessionKeyEnum.DATA_INTERFACE.value] = {
             f"{DataInterfaceForm.prefix}-{key}": getattr(datainterface, key)
@@ -221,6 +222,11 @@ class TestMultiformStep2:
             f"{PipelineForm.prefix}-{key}": getattr(pipeline, key)
             for key in PipelineForm._meta.fields
         }
+        if step:
+            # TODO: This is probably wrong, fix it :)
+            session[SessionKeyEnum.STEP.value] = {
+                f"{key}": getattr(step, key) for key in StepForm._meta.fields
+            }
         session.save()
 
     def assert_session_cleared(self, client):
@@ -328,6 +334,11 @@ class TestMultiformStep2:
         assert response.status_code == HTTPStatus.OK.numerator
         assert "form_step" in response.context
         assert response.context["form_step"].instance == step_model
+        assert response.context["form_step"].initial is None
+        # TODO:
+        # - Save step data to session here
+        # - call nonadmin_client.get() again with the same parameters
+        # - assert that form.initial is equal to session data saved
 
     def test_edit_step_post(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
