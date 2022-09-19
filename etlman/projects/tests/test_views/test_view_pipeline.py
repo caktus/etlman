@@ -4,7 +4,7 @@ from http import HTTPStatus
 import pytest
 from django.urls import reverse
 
-from etlman.projects.forms import DataInterfaceForm, PipelineForm
+from etlman.projects.forms import DataInterfaceForm, PipelineForm, StepForm
 from etlman.projects.models import DataInterface, Pipeline, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
@@ -12,7 +12,7 @@ from etlman.projects.tests.factories import (
     PipelineFactory,
     StepFactory,
 )
-from etlman.projects.views import SessionKeyEnum
+from etlman.projects.views import SessionKeyEnum, get_session_key
 
 
 @pytest.mark.django_db
@@ -27,6 +27,8 @@ class TestMultiformStep1:
         CollaboratorFactory(project=project, user=nonadmin_user)
         pipeline = PipelineFactory.build()
         datainterface = pipeline.input
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE)
+        data_interface_session_key = get_session_key(SessionKeyEnum.DATA_INTERFACE)
         data = {
             "pipeline-name": pipeline.name,
             "data_interface-name": datainterface.name,
@@ -45,13 +47,11 @@ class TestMultiformStep1:
         )
         # Check session for saved values
         assert (
-            nonadmin_client.session[SessionKeyEnum.PIPELINE.value]["pipeline-name"]
+            nonadmin_client.session[pipeline_session_key]["pipeline-name"]
             == data["pipeline-name"]
         )
         assert (
-            nonadmin_client.session[SessionKeyEnum.DATA_INTERFACE.value][
-                "data_interface-name"
-            ]
+            nonadmin_client.session[data_interface_session_key]["data_interface-name"]
             == data["data_interface-name"]
         )
         assert Pipeline.objects.all().count() == 0
@@ -62,6 +62,10 @@ class TestMultiformStep1:
         pipeline = PipelineFactory()
         datainterface = pipeline.input
         StepFactory(pipeline=pipeline)
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, pipeline)
+        data_interface_session_key = get_session_key(
+            SessionKeyEnum.DATA_INTERFACE, datainterface
+        )
         data = {
             "pipeline-name": "new pipeline name",
             "data_interface-name": "new data interface name",
@@ -81,13 +85,11 @@ class TestMultiformStep1:
         )
         # Check session for saved values
         assert (
-            nonadmin_client.session[SessionKeyEnum.PIPELINE.value]["pipeline-name"]
+            nonadmin_client.session[pipeline_session_key]["pipeline-name"]
             == data["pipeline-name"]
         )
         assert (
-            nonadmin_client.session[SessionKeyEnum.DATA_INTERFACE.value][
-                "data_interface-name"
-            ]
+            nonadmin_client.session[data_interface_session_key]["data_interface-name"]
             == data["data_interface-name"]
         )
         # Check that values haven't changed in DB
@@ -211,30 +213,51 @@ class TestMultiformStep2:
         assert response.status_code == HTTPStatus.OK.numerator
         assert "Forgot Password" in str(response.content)
 
-    def save_step2_data_in_session(self, client, pipeline, datainterface):
+    def save_step2_data_in_session(self, client, pipeline, datainterface, step=None):
         session = client.session
-        session[SessionKeyEnum.DATA_INTERFACE.value] = {
+        datainterface_session_key = get_session_key(
+            SessionKeyEnum.DATA_INTERFACE, datainterface
+        )
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, pipeline)
+        session[datainterface_session_key] = {
             f"{DataInterfaceForm.prefix}-{key}": getattr(datainterface, key)
             for key in DataInterfaceForm._meta.fields
         }
-        session[SessionKeyEnum.PIPELINE.value] = {
+        session[pipeline_session_key] = {
             f"{PipelineForm.prefix}-{key}": getattr(pipeline, key)
             for key in PipelineForm._meta.fields
         }
+        if step:
+            session[get_session_key(SessionKeyEnum.STEP, step)] = {
+                f"{key}": getattr(step, key) for key in StepForm._meta.fields
+            }
         session.save()
 
     def assert_session_cleared(self, client):
-        assert SessionKeyEnum.DATA_INTERFACE.value not in client.session
-        assert SessionKeyEnum.PIPELINE.value not in client.session
+        assert get_session_key(SessionKeyEnum.DATA_INTERFACE) not in client.session
+        assert get_session_key(SessionKeyEnum.PIPELINE) not in client.session
 
     def test_new_step_get(self, nonadmin_client, project):
-        pipeline = PipelineFactory(project=project)
-        datainterface = DataInterfaceFactory(project=project)
+        # Use .build when making _get request to ensure object does not
+        # exist in db.
+        pipeline = PipelineFactory.build(project=project)
+        datainterface = DataInterfaceFactory.build(project=project)
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
         response = nonadmin_client.get(
             reverse("projects:new_step", args=(project.pk,)), follow=True
         )
         assert response.status_code == HTTPStatus.OK.numerator
+        # Form shows initial data defined in views.py.
+        assert (
+            response.context["form_step"].initial["name"] == pipeline.name + "_script"
+        )
+        step = StepFactory.build(pipeline=pipeline)
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface, step)
+        response = nonadmin_client.get(
+            reverse("projects:new_step", args=(project.pk,)), follow=True
+        )
+        # Form shows data temporarily saved to session.
+        assert response.context["form_step"].initial["name"] == step.name
 
     def test_new_step_post(self, nonadmin_client, project):
         pipeline = PipelineFactory.build(project=project)
@@ -283,8 +306,8 @@ class TestMultiformStep2:
     def test_back_new_step_post(self, nonadmin_client, project):
         pipeline = PipelineFactory.build(project=project)
         datainterface = pipeline.input
+        step_session_key = get_session_key(SessionKeyEnum.STEP)
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
-
         data = {
             "name": "new name",
             "language": "Python",
@@ -302,40 +325,49 @@ class TestMultiformStep2:
         assert Pipeline.objects.count() == 0
         assert DataInterface.objects.count() == 0
         assert Step.objects.count() == 0
-        assert (
-            nonadmin_client.session[SessionKeyEnum.STEP.value]["name"] == data["name"]
-        )
-        assert (
-            nonadmin_client.session[SessionKeyEnum.STEP.value]["script"]
-            == data["script"]
-        )
+        assert nonadmin_client.session[step_session_key]["name"] == data["name"]
+        assert nonadmin_client.session[step_session_key]["script"] == data["script"]
 
     def test_edit_step_get(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
         datainterface = pipeline.input
+        # User did not make any changes to the data in the database when they
+        # submitted the form to go to step 2.
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
-
-        data = {
-            "name": [pipeline.name, datainterface.name],
-            "interface_type": "database",
-            "connection_string": [datainterface.connection_string],
-            "script": step_model.script,
-        }
-        response = nonadmin_client.post(
+        response = nonadmin_client.get(
             reverse(
                 "projects:edit_step",
                 kwargs={
                     "project_id": project.id,
                     "step_id": step_model.pk,
                 },
-            ),
-            data=data,
+            )
         )
 
         assert response.status_code == HTTPStatus.OK.numerator
         assert "form_step" in response.context
         assert response.context["form_step"].instance == step_model
+        # Form shows the value from the database, NOT the default value in views.py.
+        assert response.context["form_step"].initial["name"] == step_model.name
+        # Try again, this time after saving step data to the session.
+        step_model.name = "entirely new name"
+        # Specifically NOT calling step_model.save() here to confirm that the
+        # data is being loaded from the session, not the database.
+        self.save_step2_data_in_session(
+            nonadmin_client, pipeline, datainterface, step_model
+        )
+        response = nonadmin_client.get(
+            reverse(
+                "projects:edit_step",
+                kwargs={
+                    "project_id": project.id,
+                    "step_id": step_model.pk,
+                },
+            )
+        )
+        # Form shows the data that was temporarily saved to the session.
+        assert response.context["form_step"].initial["name"] == step_model.name
 
     def test_edit_step_post(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
@@ -363,10 +395,11 @@ class TestMultiformStep2:
         assert data["script"] == edited_step_model.script
         self.assert_session_cleared(nonadmin_client)
 
-    def test_back_edit_step_post(self, nonadmin_user, nonadmin_client, project):
+    def test_back_edit_step_post(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
         datainterface = pipeline.input
+        step_session_key = get_session_key(SessionKeyEnum.STEP, step_model)
 
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
 
@@ -386,8 +419,6 @@ class TestMultiformStep2:
         assert Pipeline.objects.count() == 1
         assert DataInterface.objects.count() == 1
         assert Step.objects.count() == 1
-        assert SessionKeyEnum.STEP.value in nonadmin_client.session
-        assert (
-            nonadmin_client.session[SessionKeyEnum.STEP.value]["name"] == data["name"]
-        )
+        assert step_session_key in nonadmin_client.session
+        assert nonadmin_client.session[step_session_key]["name"] == data["name"]
         assert pipeline.name in str(response.content)
