@@ -33,7 +33,7 @@ class SessionKeyEnum(enum.Enum):
 
 def get_session_key(session_key_enum, object=None):
     "Generates a session key that is scoped to the object, if any."
-    id_ = object.pk if object is not None else "new"
+    id_ = object.pk if object and object.pk is not None else "new"
     return session_key_enum.value.format(id=id_)
 
 
