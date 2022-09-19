@@ -27,9 +27,15 @@ class MessagesEnum(enum.Enum):
 
 
 class SessionKeyEnum(enum.Enum):
-    PIPELINE = "_pipeline_wizard_pipeline"
-    DATA_INTERFACE = "_pipeline_wizard_data_interface"
-    STEP = "_pipeline_wizard_step"
+    PIPELINE = "_pipeline_wizard_pipeline_{id}"
+    DATA_INTERFACE = "_pipeline_wizard_data_interface_{id}"
+    STEP = "_pipeline_wizard_step_{id}"
+
+
+def get_session_key(session_key_enum, object=None):
+    "Generates a session key that is scoped to the object, if any."
+    id_ = object.pk if object and object.pk is not None else "new"
+    return session_key_enum.value.format(id=id_)
 
 
 @authorize(user_is_project_collaborator)
@@ -97,7 +103,10 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
     loaded_step = loaded_pipeline.step_set.all().first() if loaded_pipeline else None
     loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
     username = request.user.username
-
+    pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
+    data_interface_session_key = get_session_key(
+        SessionKeyEnum.DATA_INTERFACE, loaded_data_interface
+    )
     # Form functionality
     if request.method == "POST":
         form_pipeline = PipelineForm(request.POST, instance=loaded_pipeline)
@@ -107,20 +116,16 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
         if form_pipeline.is_valid() and form_datainterface.is_valid():
             # Use session for persistence between steps in the wizard due to potential
             # size of 'script' field in step 2.
-            request.session[SessionKeyEnum.PIPELINE.value] = form_pipeline.data
-            request.session[
-                SessionKeyEnum.DATA_INTERFACE.value
-            ] = form_datainterface.data
+            request.session[pipeline_session_key] = form_pipeline.data
+            request.session[data_interface_session_key] = form_datainterface.data
             if loaded_step:
                 url = reverse("projects:edit_step", args=(project.pk, loaded_step.pk))
             else:
                 url = reverse("projects:new_step", args=(project.pk,))
             return HttpResponseRedirect(url)
     else:  # GET
-        session_pipeline = request.session.get(SessionKeyEnum.PIPELINE.value, None)
-        session_data_interface = request.session.get(
-            SessionKeyEnum.DATA_INTERFACE.value, None
-        )
+        session_pipeline = request.session.get(pipeline_session_key, None)
+        session_data_interface = request.session.get(data_interface_session_key, None)
         form_pipeline = PipelineForm(session_pipeline, instance=loaded_pipeline)
         form_datainterface = DataInterfaceForm(
             session_data_interface,
@@ -148,8 +153,13 @@ def new_step_step2(request, project_id, step_id=None):
     step = get_object_or_404(Step, pk=step_id) if step_id else None
     loaded_pipeline = step.pipeline if step else None
     loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
-    session_data_interface = request.session[SessionKeyEnum.DATA_INTERFACE.value]
-    session_pipeline = request.session[SessionKeyEnum.PIPELINE.value]
+    pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
+    data_interface_session_key = get_session_key(
+        SessionKeyEnum.DATA_INTERFACE, loaded_data_interface
+    )
+    step_session_key = get_session_key(SessionKeyEnum.STEP, step)
+    session_pipeline = request.session[pipeline_session_key]
+    session_data_interface = request.session[data_interface_session_key]
 
     # Form functionality
     if request.method == "POST":
@@ -188,13 +198,16 @@ def new_step_step2(request, project_id, step_id=None):
                 )
             messages.add_message(request, messages.SUCCESS, message)
 
-            clear_step_wizard_session_variables(request)
+            clear_step_wizard_session_variables(
+                request,
+                [pipeline_session_key, data_interface_session_key, step_session_key],
+            )
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
             )
 
         elif "back" in request.POST:
-            request.session[SessionKeyEnum.STEP.value] = form_step.data
+            request.session[step_session_key] = form_step.data
             if loaded_pipeline:
                 url = reverse(
                     "projects:edit_pipeline", args=(project.pk, loaded_pipeline.pk)
@@ -203,21 +216,16 @@ def new_step_step2(request, project_id, step_id=None):
                 url = reverse("projects:new_pipeline", args=(project.pk,))
             return HttpResponseRedirect(url)
     else:  # GET
-        initial = request.session.get(SessionKeyEnum.STEP.value) or {
-            "name": session_pipeline["pipeline-name"] + "_script",
-            "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
-        }
-        if not step:
-            form_step = StepForm(instance=step, initial=initial)
-        else:
-            form_step = StepForm(
-                instance=step,
-                initial={
-                    "name": step.name,
-                    "language": step.language,
-                    "script": step.script,
-                },
-            )
+        initial = request.session.get(step_session_key)
+        # if initial is provided to a ModelForm with an attached instance,
+        # it will override the values on the instance.
+        # https://docs.djangoproject.com/en/4.1/topics/forms/modelforms/#providing-initial-values
+        if initial is None and step is None:
+            initial = {
+                "name": session_pipeline["pipeline-name"] + "_script",
+                "script": "def main():\n\t...\nif __name__ == '__main__':\n\tmain()",
+            }
+        form_step = StepForm(instance=step, initial=initial)
 
     context = {
         "form_step": form_step,
@@ -226,9 +234,10 @@ def new_step_step2(request, project_id, step_id=None):
     return render(request, "projects/new_step.html", context)
 
 
-def clear_step_wizard_session_variables(request):
-    for session_key in SessionKeyEnum:
-        request.session.pop(session_key.value, None)
+def clear_step_wizard_session_variables(request, session_keys):
+    """Iterates over session keys and clears cache"""
+    for session_key in session_keys:
+        request.session.pop(session_key, None)
 
 
 @authorize(user_is_project_collaborator)
