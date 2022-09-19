@@ -1,0 +1,7 @@
+# Make sure staticfiles/ directory exists in new checkouts to
+# avoid warnings when running pytest. See:
+# https://stackoverflow.com/a/932982/166053
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
