@@ -47,7 +47,6 @@ class TestMultiformStep1:
         )
         # Check session for saved values
         assert (
-            # Import func and replace SessionKeyEnum.PIPELINE.value
             nonadmin_client.session[pipeline_session_key]["pipeline-name"]
             == data["pipeline-name"]
         )
