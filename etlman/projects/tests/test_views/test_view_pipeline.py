@@ -217,11 +217,9 @@ class TestMultiformStep2:
     def save_step2_data_in_session(self, client, pipeline, datainterface, step=None):
         session = client.session
         datainterface_session_key = get_session_key(
-            SessionKeyEnum.DATA_INTERFACE, datainterface if datainterface else None
+            SessionKeyEnum.DATA_INTERFACE, datainterface
         )
-        pipeline_session_key = get_session_key(
-            SessionKeyEnum.PIPELINE, pipeline if pipeline else None
-        )
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, pipeline)
         session[datainterface_session_key] = {
             f"{DataInterfaceForm.prefix}-{key}": getattr(datainterface, key)
             for key in DataInterfaceForm._meta.fields
@@ -231,7 +229,7 @@ class TestMultiformStep2:
             for key in PipelineForm._meta.fields
         }
         if step:
-            session[get_session_key(SessionKeyEnum.STEP)] = {
+            session[get_session_key(SessionKeyEnum.STEP, step)] = {
                 f"{key}": getattr(step, key) for key in StepForm._meta.fields
             }
         session.save()
@@ -242,7 +240,7 @@ class TestMultiformStep2:
 
     def test_new_step_get(self, nonadmin_client, project):
         # Use .build when making _get request to ensure object does not
-        # exist in db
+        # exist in db.
         pipeline = PipelineFactory.build(project=project)
         datainterface = DataInterfaceFactory.build(project=project)
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
@@ -250,6 +248,17 @@ class TestMultiformStep2:
             reverse("projects:new_step", args=(project.pk,)), follow=True
         )
         assert response.status_code == HTTPStatus.OK.numerator
+        # Form shows initial data defined in views.py.
+        assert (
+            response.context["form_step"].initial["name"] == pipeline.name + "_script"
+        )
+        step = StepFactory.build(pipeline=pipeline)
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface, step)
+        response = nonadmin_client.get(
+            reverse("projects:new_step", args=(project.pk,)), follow=True
+        )
+        # Form shows data temporarily saved to session.
+        assert response.context["form_step"].initial["name"] == step.name
 
     def test_new_step_post(self, nonadmin_client, project):
         pipeline = PipelineFactory.build(project=project)
@@ -324,6 +333,8 @@ class TestMultiformStep2:
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
         pipeline = step_model.pipeline
         datainterface = pipeline.input
+        # User did not make any changes to the data in the database when they
+        # submitted the form to go to step 2.
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
         response = nonadmin_client.get(
             reverse(
@@ -338,11 +349,26 @@ class TestMultiformStep2:
         assert response.status_code == HTTPStatus.OK.numerator
         assert "form_step" in response.context
         assert response.context["form_step"].instance == step_model
-        assert response.context["form_step"].initial is not None
-        # TODO:
-        # - Save step data to session here
-        # - call nonadmin_client.get() again with the same parameters
-        # - assert that form.initial is equal to session data saved
+        # Form shows the value from the database, NOT the default value in views.py.
+        assert response.context["form_step"].initial["name"] == step_model.name
+        # Try again, this time after saving step data to the session.
+        step_model.name = "entirely new name"
+        # Specifically NOT calling step_model.save() here to confirm that the
+        # data is being loaded from the session, not the database.
+        self.save_step2_data_in_session(
+            nonadmin_client, pipeline, datainterface, step_model
+        )
+        response = nonadmin_client.get(
+            reverse(
+                "projects:edit_step",
+                kwargs={
+                    "project_id": project.id,
+                    "step_id": step_model.pk,
+                },
+            )
+        )
+        # Form shows the data that was temporarily saved to the session.
+        assert response.context["form_step"].initial["name"] == step_model.name
 
     def test_edit_step_post(self, nonadmin_client, project):
         step_model = StepFactory(pipeline=PipelineFactory(project=project))
