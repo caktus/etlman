@@ -241,9 +241,19 @@ def clear_step_wizard_session_variables(request, session_keys):
 
 
 @authorize(user_is_project_collaborator)
-def clear_step_wizard_session_view(request, project_id):
+def clear_step_wizard_session_view(request, project_id, pipeline_id=None):
     project = get_object_or_404(Project, pk=project_id)
-    clear_step_wizard_session_variables(request)
+    loaded_pipeline = (
+        get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
+    )
+    loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
+    pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
+    data_interface_session_key = get_session_key(
+        SessionKeyEnum.DATA_INTERFACE, loaded_data_interface
+    )
+    clear_step_wizard_session_variables(
+        request, [pipeline_session_key, data_interface_session_key]
+    )
     return HttpResponseRedirect(reverse("projects:list_pipeline", args=(project.pk,)))
 
 
