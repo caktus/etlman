@@ -116,6 +116,8 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+After creating an account, navigate to http://localhost:3000/ to login. On first login, you will be prompted to verify your account. You should see the verification email in the console output from the `etlman_local_django` container (or runserver, if running locally).
+
 ## Testing
 
 ### Test coverage
