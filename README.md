@@ -79,24 +79,30 @@ See detailed [cookiecutter-django Docker documentation](http://cookiecutter-djan
 docker-compose up
 ```
 
-(This causes docker to run in the foreground, so you will need to open another terminal to continue)
+This causes docker to run in the foreground, so you will need to open another terminal to continue.
 
-or
+Alternatively:
 
 ```sh
 docker-compose up -d
 ```
 
-**Note**: adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
+Adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
 
 #### Not Using Docker
 
-1.  Create a database with `createdb etlman_dev`
-2.  python manage.py migrate
-3.  python manage.py runserver
+If not using Docker, you can create the database using a local Postgres installation and run migrations:
 
-### 6. Exec into the Docker container(only if developing in Docker)
-You'll need to open a bash shell container to run migrate and createsuperuser inside the container.
+```sh
+createdb etlman_dev
+python manage.py migrate
+python manage.py runserver
+```
+
+If not using ident authentication, you might need to update the `DATABASE_URL` in your `.envrc`.
+
+### 6. Exec into the Docker container (if developing in Docker)
+You'll need to open a bash shell container to run migrate and createsuperuser inside the container:
 
 ```sh
 docker-compose run --rm django bash
