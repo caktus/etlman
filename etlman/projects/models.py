@@ -1,5 +1,6 @@
 from django.db import models
 
+from etlman.backends import get_backend
 from etlman.users.models import User
 
 
@@ -59,6 +60,10 @@ class Step(models.Model):
 
     def __str__(self):
         return self.name
+
+    def run_script(self):
+        backend = get_backend()
+        return backend.execute_script(self.language, self.script)
 
     class Meta:
         constraints = [
