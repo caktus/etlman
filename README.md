@@ -13,27 +13,31 @@ cd etlman
 
 **2. Set up virtual environment**
 
-Next, set up your virtual environment with Python3. For example, `etlman-venv`
-You will note the distinct lack of opinion on how you should manage your
-virtual environment. This is by design.
+[direnv](https://direnv.net/) is recommended for managing your local Python virtual environment and shell environment variables. Onced installed, add the following to a file called `.envrc` in the root of the `etlman/` directory:
 
-In case you use [direnv](https://direnv.net/), here is a sample `.envrc` file:
-
-```
+```sh
 layout python python3.9
 
 export CELERY_BROKER_URL=redis://localhost:6379
-export USE_DOCKER=true
 export DATABASE_URL=postgres:///etlman_dev
+export USE_DOCKER=true
 export COMPOSE_FILE=local.yml
 export PATH="node_modules/.bin/:$PATH"
 ```
 
+When prompted, run:
+
+```sh
+direnv allow
+```
+
+(If you received no prompt after saving `.envrc`, direnv might not be installed properly.)
+
 **3. Install dependencies**
 
-This is needed only if you are not using Docker - in such case fetch all dependencies (preferable inside your virtualenv), run:
+If you **don't** intend to use Docker to develop, install requirements locally:
 
-```
+```sh
 pip install -r requirements/local.txt
 npm install
 ```
@@ -46,13 +50,12 @@ to GitHub and reset your pre-commit cache to make sure that you're starting fres
 
 To install, run:
 
-```linux
-pre-commit clean
+```sh
 pre-commit install
 pre-commit run --all-files
 ```
 
-**5. Postgress**
+**5. Postgres**
 
 ### Using Docker
 
@@ -60,7 +63,7 @@ If you are unable to run Postgres locally (if you develop on an M1), Docker is a
 
 #### Build the stack
 
-```
+```sh
 docker-compose build
 ```
 
@@ -70,7 +73,7 @@ See detailed [cookiecutter-django Docker documentation](http://cookiecutter-djan
 
 #### Run the stack
 
-```
+```sh
 docker-compose up
 ```
 
@@ -78,7 +81,7 @@ docker-compose up
 
 or
 
-```
+```sh
 docker-compose up -d
 ```
 
@@ -93,32 +96,32 @@ docker-compose up -d
 **6. Exec into the Docker container(only if developing in Docker)**
 You'll need to open a bash shell container to run migrate and createsuperuser inside the container.
 
-```
+```sh
 docker-compose run --rm django bash
 ```
 
 **7. Migrate and Create a super user**
 **Note**: When creating a super user, you must provide an email address. If you fail to provide an email address, you will not be able to verify your account (via the link in the email printed to the console) nor login to the system.
 
-```
+```sh
 python manage.py migrate
 python manage.py createsuperuser
 ```
 
-**7. Testing**
+**8. Testing**
 
 ### Test coverage
 
 To run the tests, check your test coverage, and generate an HTML coverage report:
 
-```
+```sh
 coverage run -m pytest
 coverage report -m
 ```
 
 Alternatively, to view the report in HTML:
 
-```
+```sh
 coverage html
 open htmlcov/index.html
 ```
