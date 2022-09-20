@@ -7,8 +7,8 @@
 First clone the repository from Github and switch to the new directory:
 
 ```
-    $ git clone git@github.com:caktus/etlman.git
-    $ cd etlman
+git clone git@github.com:caktus/etlman.git
+cd etlman
 ```
 
 **2. Set up virtual environment**
@@ -47,9 +47,9 @@ to GitHub and reset your pre-commit cache to make sure that you're starting fres
 To install, run:
 
 ```linux
-    (etlman-venv)$ pre-commit clean
-    (etlman-venv)$ pre-commit install
-    (etlman-venv)$ pre-commit run --all-files
+pre-commit clean
+pre-commit install
+pre-commit run --all-files
 ```
 
 **5. Postgress**
@@ -61,7 +61,7 @@ If you are unable to run Postgres locally (if you develop on an M1), Docker is a
 #### Build the stack
 
 ```
-(etlman-venv)$ docker-compose build
+docker-compose build
 ```
 
 **Note**: Building the stack can take a while
@@ -71,7 +71,7 @@ See detailed [cookiecutter-django Docker documentation](http://cookiecutter-djan
 #### Run the stack
 
 ```
-(etlman-venv)$ docker-compose up
+docker-compose up
 ```
 
 (This causes docker to run in the foreground, so you will need to open another terminal to continue)
@@ -79,7 +79,7 @@ See detailed [cookiecutter-django Docker documentation](http://cookiecutter-djan
 or
 
 ```
-(etlman-venv)$ docker-compose up -d
+docker-compose up -d
 ```
 
 **Note**: adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
@@ -112,15 +112,15 @@ python manage.py createsuperuser
 To run the tests, check your test coverage, and generate an HTML coverage report:
 
 ```
-(etlman-venv)$ coverage run -m pytest
-(etlman-venv)$ coverage report -m
+coverage run -m pytest
+coverage report -m
 ```
 
 Alternatively, to view the report in HTML:
 
 ```
-(etlman-venv)$ coverage html
-(etlman-venv)$ open htmlcov/index.html
+coverage html
+open htmlcov/index.html
 ```
 
 ### Custom Bootstrap Compilation
