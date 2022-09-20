@@ -2,7 +2,7 @@
 
 ## Local Setup
 
-**1. Get the project**
+### 1. Get the project
 
 First clone the repository from Github and switch to the new directory:
 
@@ -11,11 +11,12 @@ git clone git@github.com:caktus/etlman.git
 cd etlman
 ```
 
-**2. Set up virtual environment**
+### 2. Set up virtual environment
 
-[direnv](https://direnv.net/) is recommended for managing your local Python virtual environment and shell environment variables. Onced installed, add the following to a file called `.envrc` in the root of the `etlman/` directory:
+[direnv](https://direnv.net/) is recommended for managing your local Python virtual environment and shell environment variables. Once installed, add the following to a file called `.envrc` in the root of the `etlman/` directory:
 
 ```sh
+# .envrc
 layout python python3.9
 
 export CELERY_BROKER_URL=redis://localhost:6379
@@ -33,7 +34,7 @@ direnv allow
 
 (If you received no prompt after saving `.envrc`, direnv might not be installed properly.)
 
-**3. Install dependencies**
+### 3. Install dependencies
 
 If you **don't** intend to use Docker to develop, install requirements locally:
 
@@ -42,7 +43,7 @@ pip install -r requirements/local.txt
 npm install
 ```
 
-**4. Pre-commit**
+### 4. Pre-commit
 
 Pre-commit is used to enforce a variety of community standards. CI runs it,
 so it's useful to setup the pre-commit hook to catch any issues before pushing
@@ -51,17 +52,18 @@ to GitHub and reset your pre-commit cache to make sure that you're starting fres
 To install, run:
 
 ```sh
+pre-commit clean
 pre-commit install
 pre-commit run --all-files
 ```
 
-**5. Postgres**
+### 5. Postgres
 
-### Using Docker
+#### Using Docker
 
 If you are unable to run Postgres locally (if you develop on an M1), Docker is a great alternative. See [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html) for more details on the Docker setup.
 
-#### Build the stack
+##### Build the stack
 
 ```sh
 docker-compose build
@@ -71,7 +73,7 @@ docker-compose build
 
 See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
 
-#### Run the stack
+##### Run the stack
 
 ```sh
 docker-compose up
@@ -87,20 +89,20 @@ docker-compose up -d
 
 **Note**: adding -d indicates running docker in "detached mode" which allows you to continue using the same terminal window.
 
-### Not Using Docker
+#### Not Using Docker
 
 1.  Create a database with `createdb etlman_dev`
 2.  python manage.py migrate
 3.  python manage.py runserver
 
-**6. Exec into the Docker container(only if developing in Docker)**
+### 6. Exec into the Docker container(only if developing in Docker)
 You'll need to open a bash shell container to run migrate and createsuperuser inside the container.
 
 ```sh
 docker-compose run --rm django bash
 ```
 
-**7. Migrate and Create a super user**
+### 7. Migrate and Create a super user
 **Note**: When creating a super user, you must provide an email address. If you fail to provide an email address, you will not be able to verify your account (via the link in the email printed to the console) nor login to the system.
 
 ```sh
@@ -108,7 +110,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-**8. Testing**
+## Testing
 
 ### Test coverage
 
@@ -126,7 +128,7 @@ coverage html
 open htmlcov/index.html
 ```
 
-### Custom Bootstrap Compilation
+## Custom Bootstrap Compilation
 
 The generated CSS is set up with automatic Bootstrap recompilation with variables of your choice.
 Bootstrap v5 is installed using npm and customised by tweaking your variables in `static/sass/custom_bootstrap_vars`.
