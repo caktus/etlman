@@ -423,16 +423,26 @@ class TestMultiformStep2:
         assert nonadmin_client.session[step_session_key]["name"] == data["name"]
         assert pipeline.name in str(response.content)
 
-
-@pytest.mark.django_db
-class TestClearSession:
     def test_cancel_new_step_get(self, nonadmin_client, project):
-        response = nonadmin_client.get(
-            reverse("projects:clear_wizard_session", args=(project.pk,)),
+        step = StepFactory.build(pipeline=PipelineFactory(project=project))
+        pipeline = step.pipeline
+        datainterface = pipeline.input
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+        nonadmin_client.get(
+            reverse("projects:clear_wizard_session", args=(project.pk, pipeline.pk)),
             follow=True,
         )
+        assert "pipeline" not in nonadmin_client.session.keys()
+        assert "datainterface" not in nonadmin_client.session.keys()
 
-        assert response.status_code == HTTPStatus.OK.numerator
-        assert Pipeline.objects.count() == 0
-        assert DataInterface.objects.count() == 0
-        assert Step.objects.count() == 0
+    def test_cancel_with_saved_step_get(self, nonadmin_client, project):
+        step = StepFactory(pipeline=PipelineFactory(project=project))
+        pipeline = step.pipeline
+        datainterface = pipeline.input
+        self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
+        nonadmin_client.get(
+            reverse("projects:clear_wizard_session", args=(project.pk, pipeline.pk)),
+            follow=True,
+        )
+        assert "pipeline" not in nonadmin_client.session.keys()
+        assert "datainterface" not in nonadmin_client.session.keys()

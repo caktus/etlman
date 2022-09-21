@@ -10,8 +10,13 @@
         </div>
         <div class="row pt-4">
             <div class="col">
-                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk %}"
+                {%if form_pipeline.instance.pk %}
+                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk pipeline_id=form_pipeline.instance.pk %}"
                     class="btn btn-danger">Cancel</a>
+                {% else %}
+                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk pipeline_id=1 %}"
+                    class="btn btn-danger">Cancel</a>
+                {% endif %}
             </div>
             <div class="col text-center">
                 <button type="submit" class="btn btn-info"
