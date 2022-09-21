@@ -424,16 +424,18 @@ class TestMultiformStep2:
         assert pipeline.name in str(response.content)
 
     def test_cancel_new_step_get(self, nonadmin_client, project):
-        step = StepFactory.build(pipeline=PipelineFactory(project=project))
+        step = StepFactory.build(pipeline__project=project)
         pipeline = step.pipeline
         datainterface = pipeline.input
         self.save_step2_data_in_session(nonadmin_client, pipeline, datainterface)
         nonadmin_client.get(
-            reverse("projects:clear_wizard_session", args=(project.pk, pipeline.pk)),
+            reverse("projects:clear_wizard_session", args=(project.pk,)),
             follow=True,
         )
-        assert "pipeline" not in nonadmin_client.session.keys()
-        assert "datainterface" not in nonadmin_client.session.keys()
+        datainterface_session_key = get_session_key(SessionKeyEnum.DATA_INTERFACE)
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE)
+        assert datainterface_session_key not in nonadmin_client.session.keys()
+        assert pipeline_session_key not in nonadmin_client.session.keys()
 
     def test_cancel_with_saved_step_get(self, nonadmin_client, project):
         step = StepFactory(pipeline=PipelineFactory(project=project))
@@ -444,5 +446,9 @@ class TestMultiformStep2:
             reverse("projects:clear_wizard_session", args=(project.pk, pipeline.pk)),
             follow=True,
         )
-        assert "pipeline" not in nonadmin_client.session.keys()
-        assert "datainterface" not in nonadmin_client.session.keys()
+        pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, pipeline)
+        datainterface_session_key = get_session_key(
+            SessionKeyEnum.DATA_INTERFACE, datainterface
+        )
+        assert pipeline_session_key not in nonadmin_client.session.keys()
+        assert datainterface_session_key not in nonadmin_client.session.keys()

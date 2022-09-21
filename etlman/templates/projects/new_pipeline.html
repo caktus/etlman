@@ -14,7 +14,7 @@
                 <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk pipeline_id=form_pipeline.instance.pk %}"
                     class="btn btn-danger">Cancel</a>
                 {% else %}
-                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk pipeline_id=1 %}"
+                <a href="{% url 'projects:clear_wizard_session' project_id=current_project.pk %}"
                     class="btn btn-danger">Cancel</a>
                 {% endif %}
             </div>

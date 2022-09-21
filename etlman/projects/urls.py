@@ -46,7 +46,12 @@ urlpatterns = [
         name="test_connection",
     ),
     path(
-        "<int:project_id>/clear-wizard-session/<int:pipeline_id>",
+        "<int:project_id>/clear-wizard-session/<int:pipeline_id>/",
+        view=clear_step_wizard_session_view,
+        name="clear_wizard_session",
+    ),
+    path(
+        "<int:project_id>/clear-wizard-session/",
         view=clear_step_wizard_session_view,
         name="clear_wizard_session",
     ),
