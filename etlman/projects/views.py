@@ -23,6 +23,7 @@ class MessagesEnum(enum.Enum):
     PIPELINE_CREATED = "Pipeline '{name}' added successfully"
     PIPELINE_UPDATED = "Pipeline '{name}' updated successfully"
     PIPELINE_DELETED = "Pipeline '{name}' deleted successfully"
+    PIPELINE_IN_PROGRESS_MSG = "This form contains unsaved changes"
 
 
 class SessionKeyEnum(enum.Enum):
@@ -131,6 +132,12 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
             instance=loaded_data_interface,
             initial={"interface_type": "database"},
         )
+        if session_pipeline and session_data_interface:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                MessagesEnum.PIPELINE_IN_PROGRESS_MSG.value,
+            )
     context = {
         "form_pipeline": form_pipeline,
         "form_datainterface": form_datainterface,
@@ -231,6 +238,23 @@ def clear_step_wizard_session_variables(request, session_keys):
     """Iterates over session keys and clears cache"""
     for session_key in session_keys:
         request.session.pop(session_key, None)
+
+
+@authorize(user_is_project_collaborator)
+def clear_step_wizard_session_view(request, project_id, pipeline_id=None):
+    project = get_object_or_404(Project, pk=project_id)
+    loaded_pipeline = (
+        get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
+    )
+    loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
+    pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
+    data_interface_session_key = get_session_key(
+        SessionKeyEnum.DATA_INTERFACE, loaded_data_interface
+    )
+    clear_step_wizard_session_variables(
+        request, [pipeline_session_key, data_interface_session_key]
+    )
+    return HttpResponseRedirect(reverse("projects:list_pipeline", args=(project.pk,)))
 
 
 @authorize(user_is_project_collaborator)
