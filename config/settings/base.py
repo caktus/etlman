@@ -301,3 +301,5 @@ SOCIALACCOUNT_FORMS = {"signup": "etlman.users.forms.UserSocialSignupForm"}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+ETLMAN_BACKEND = env("ETLMAND_BACKEND", default="subprocess")
