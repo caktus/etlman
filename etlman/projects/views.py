@@ -311,4 +311,4 @@ def test_step_connection_string(request, project_id):
         "success": success,
         "status_code": status_code,
     }
-    return render(request, "projects/_test_connection.html", context)
+    return render(request, "projects/_test_script.html", context)
