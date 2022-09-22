@@ -286,3 +286,16 @@ def test_db_connection_string(request, project_id):
         "form": form,
     }
     return render(request, "projects/_test_connection.html", context)
+
+
+@authorize(user_is_project_collaborator)
+def test_step_connection_string(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    form = StepForm(request.POST)
+    message = ""
+    if form.is_valid():
+        message = "The script works!"
+    else:  # GET
+        message = "The script does not work :("
+    context = {"message": message, "form": form, "project": project}
+    return render(request, "projects/test_script.html", context)
