@@ -1,0 +1,15 @@
+{% load crispy_forms_tags %}
+<div class="container" id="step_result">
+    <h1>Script Connection</h1>
+    {% if success %}
+    <h2>{{ message }}</h2>
+    <p>
+        Status code: <em> {{ status_code }}</em>
+    </p>
+    {% else %}
+    <h2>{{ message }}</h2>
+    {% endif %}
+</div>
+<div id="step_form_htmx_oob" hx-swap-oob="true">
+    {{ form|crispy }}
+</div>

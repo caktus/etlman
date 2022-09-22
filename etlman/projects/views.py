@@ -289,13 +289,26 @@ def test_db_connection_string(request, project_id):
 
 
 @authorize(user_is_project_collaborator)
+@require_http_methods(["POST"])
 def test_step_connection_string(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = StepForm(request.POST)
-    message = ""
+    message, status_code, success = "", 0, False
     if form.is_valid():
-        message = "The script works!"
-    else:  # GET
-        message = "The script does not work :("
-    context = {"message": message, "form": form, "project": project}
-    return render(request, "projects/test_script.html", context)
+        try:
+            success = True
+        except Exception as e:
+            success = False
+            status_code = 1
+            message = f"We were unable to run your script. \n {e}"
+        if success:
+            status_code = 0
+            message = "Database connection successful!"
+    context = {
+        "message": message,
+        "form": form,
+        "project": project,
+        "success": success,
+        "status_code": status_code,
+    }
+    return render(request, "projects/_test_connection.html", context)
