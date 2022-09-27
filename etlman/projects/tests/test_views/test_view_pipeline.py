@@ -494,4 +494,3 @@ class TestScriptConnectionTestView:
         )
         assert response.status_code == HTTPStatus.OK.numerator
         assert Step.objects.count() == 0
-        # assert created_step.name == response.name
