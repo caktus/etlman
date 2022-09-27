@@ -293,22 +293,23 @@ def test_db_connection_string(request, project_id):
 def test_step_connection_string(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     form = StepForm(request.POST)
-    message, status_code, success = "", 0, False
     if form.is_valid():
-        try:
-            success = True
-        except Exception as e:
-            success = False
-            status_code = 1
-            message = f"We were unable to run your script. \n {e}"
-        if success:
-            status_code = 0
-            message = "Database connection successful!"
+        step = form.save(commit=False)
+        status_code, stdout, stderr = step.run_script()
+        if status_code == 0:
+            message = "Script ran successfully!"
+        else:
+            message = "Script failed!"
+    else:
+        message = "Form contains invalid field(s)!"  # TBD
+        status_code, stdout, stderr = None, None, None
     context = {
         "message": message,
         "form": form,
         "project": project,
-        "success": success,
+        "success": status_code == 0,
         "status_code": status_code,
+        "stderr": stderr,
+        "stdout": stdout,
     }
     return render(request, "projects/_test_script.html", context)
