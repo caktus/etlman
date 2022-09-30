@@ -9,6 +9,7 @@ from etlman.projects.views import (
     new_project,
     new_step_step2,
     test_db_connection_string,
+    test_step_connection_string,
 )
 
 app_name = "projects"
@@ -54,5 +55,10 @@ urlpatterns = [
         "<int:project_id>/clear-wizard-session/",
         view=clear_step_wizard_session_view,
         name="clear_wizard_session",
+    ),
+    path(
+        "<int:project_id>/step-test/",
+        view=test_step_connection_string,
+        name="step_test",
     ),
 ]

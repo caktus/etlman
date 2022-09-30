@@ -1,0 +1,14 @@
+{% load crispy_forms_tags %}
+<div class="container" id="step_result">
+    <h1>Script Status </h1>
+    <h2>{{ message }}</h2>
+    <p>
+        <strong>Status code:</strong><em> {{ status_code }}</em>
+    </p>
+    <p><strong>stdout:</strong> </p>
+    <p class="text-monospace">{{ stdout }}</p>
+    </p>
+    <p><strong>stderr:</strong> </p>
+    <p class="text-monospace">{{ stderr }}</p>
+    </p>
+</div>

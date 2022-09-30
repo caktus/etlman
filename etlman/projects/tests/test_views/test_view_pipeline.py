@@ -452,3 +452,45 @@ class TestMultiformStep2:
         )
         assert pipeline_session_key not in nonadmin_client.session.keys()
         assert datainterface_session_key not in nonadmin_client.session.keys()
+
+
+class TestScriptConnectionTestView:
+    def test_post_only_view_test_script(self, nonadmin_client, project):
+        "The view returns an HTTP 405 (method not allowed) when given a GET request."
+
+        response = nonadmin_client.get(
+            reverse("projects:step_test", args=(project.pk,))
+        )
+        assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED.numerator
+
+    def test_blank_form_test_script_errors(self, nonadmin_client, project):
+        """
+        When given an empty field in the POST data, the 'form' variable
+        in the context includes the applicable errors.
+        """
+        data = {
+            "name": "sample-name",
+            # "language": # purposefully empty
+            # "script": # purposefully empty
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:step_test", args=(project.pk,)),
+            data=data,
+        )
+        err_msg = {
+            "language": ["This field is required."],
+            "script": ["This field is required."],
+        }
+        assert err_msg == response.context["form"].errors
+
+    def test_filled_form_test_script(self, nonadmin_client, project):
+        step = StepFactory.build()
+        data = {"name": "sample-name", "language": step.language, "script": step.script}
+
+        response = nonadmin_client.post(
+            reverse("projects:step_test", args=(project.pk,)),
+            data=data,
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert Step.objects.count() == 0

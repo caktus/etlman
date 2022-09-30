@@ -286,3 +286,30 @@ def test_db_connection_string(request, project_id):
         "form": form,
     }
     return render(request, "projects/_test_connection.html", context)
+
+
+@authorize(user_is_project_collaborator)
+@require_http_methods(["POST"])
+def test_step_connection_string(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    form = StepForm(request.POST)
+    if form.is_valid():
+        step = form.save(commit=False)
+        status_code, stdout, stderr = step.run_script()
+        if status_code == 0:
+            message = "Script ran successfully!"
+        else:
+            message = "Script failed!"
+    else:
+        message = "Form contains invalid field(s)!"  # TBD
+        status_code, stdout, stderr = None, None, None
+    context = {
+        "message": message,
+        "form": form,
+        "project": project,
+        "success": status_code == 0,
+        "status_code": status_code,
+        "stderr": stderr,
+        "stdout": stdout,
+    }
+    return render(request, "projects/_test_script.html", context)
