@@ -29,6 +29,8 @@
             <td><i>No data interface attached</i></td>
             {% endif %}
             <td>
+                <a href="{% url 'projects:schedule_pipeline' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
+                    <i class="fa-regular fa-clock"></i></a>
                 <a href="{% url 'projects:edit_pipeline' project_id=pipeline.project.id pipeline_id=pipeline.id %}">
                     <i class="fas fa-edit"></i></a>
                 <a
