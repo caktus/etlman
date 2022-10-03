@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Collaborator, DataInterface, Pipeline, Project, Step
+from .models import (
+    Collaborator,
+    DataInterface,
+    Pipeline,
+    PipelineSchedule,
+    Project,
+    Step,
+)
 
 
 class CollaboratorInline(admin.TabularInline):
@@ -38,7 +45,13 @@ class StepAdmin(admin.ModelAdmin):
     list_filter = ("pipeline__project__name",)
 
 
+class PipelineScheduleAdmin(admin.ModelAdmin):
+    list_display = ["pipeline", "published", "date"]
+    list_filter = ("published",)
+
+
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(DataInterface, DataInterfaceAdmin)
 admin.site.register(Pipeline, PipelineAdmin)
 admin.site.register(Step, StepAdmin)
+admin.site.register(PipelineSchedule, PipelineScheduleAdmin)

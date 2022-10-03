@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h1>When should '{{ pipeline }}' run?</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="row pt-3">
+        <div class="col">
+            <a href="{% url 'projects:list_pipeline' project_id=project.pk %}" class="btn btn-danger">Pipeline list</a>
+            <div class="control-group">
+                <div class="d-flex flex-row-reverse">
+                    <button type="submit" class="btn btn-primary">Save schedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock content %}

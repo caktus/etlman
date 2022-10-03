@@ -12,7 +12,13 @@ from etlman.projects.authorizers import (
     user_is_authenticated,
     user_is_project_collaborator,
 )
-from etlman.projects.forms import DataInterfaceForm, PipelineForm, ProjectForm, StepForm
+from etlman.projects.forms import (
+    DataInterfaceForm,
+    PipelineForm,
+    PipelineScheduleForm,
+    ProjectForm,
+    StepForm,
+)
 from etlman.projects.models import Collaborator, Pipeline, Project, Step
 
 
@@ -203,7 +209,10 @@ def new_step_step2(request, project_id, step_id=None):
                 [pipeline_session_key, data_interface_session_key, step_session_key],
             )
             return HttpResponseRedirect(
-                reverse("projects:list_pipeline", args=(project.pk,))
+                reverse(
+                    "projects:schedule_pipeline",
+                    args=(project.pk, form_step.instance.pk),
+                )
             )
 
         elif "back" in request.POST:
@@ -313,3 +322,23 @@ def test_step_connection_string(request, project_id):
         "stdout": stdout,
     }
     return render(request, "projects/_test_script.html", context)
+
+
+@authorize(user_is_project_collaborator)
+def schedule_pipeline_runtime(request, project_id, pipeline_id=None):
+    project = get_object_or_404(Project, pk=project_id)
+    pipeline = get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
+    if request.method == "POST":
+        form = PipelineScheduleForm(request.POST)
+        if form.is_valid():
+            schedule_form = form.save(commit=False)
+            schedule_form.pipeline = pipeline
+            schedule_form.save()
+            return HttpResponseRedirect(
+                reverse("projects:list_pipeline", args=(project.pk,))
+            )
+
+    else:
+        form = PipelineScheduleForm()
+    context = {"form": form, "project": project, "pipeline": pipeline}
+    return render(request, "projects/schedule_pipeline.html", context)

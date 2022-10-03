@@ -75,3 +75,11 @@ class Step(models.Model):
                 ),
             )
         ]
+
+
+class PipelineSchedule(models.Model):
+    pipeline = models.OneToOneField(
+        Pipeline, related_name="schedule", on_delete=models.CASCADE
+    )
+    published = models.BooleanField(default=False)
+    date = models.DateTimeField()

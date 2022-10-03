@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import DataInterface, Pipeline, Project, Step
+from .models import DataInterface, Pipeline, PipelineSchedule, Project, Step
 
 
 class MonacoEditorWidget(forms.Widget):
@@ -46,3 +46,10 @@ class StepForm(forms.ModelForm):
                 attrs={"onchange": "selectedLanguage(this.value);"}
             ),
         }
+
+
+class PipelineScheduleForm(forms.ModelForm):
+    class Meta:
+        model = PipelineSchedule
+        fields = ["date", "published"]
+        labels = {"date": "Date and time"}
