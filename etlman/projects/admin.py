@@ -46,7 +46,7 @@ class StepAdmin(admin.ModelAdmin):
 
 
 class PipelineScheduleAdmin(admin.ModelAdmin):
-    list_display = ["pipeline", "published", "date"]
+    list_display = ["start_date", "start_time", "frequency"]
     list_filter = ("published",)
 
 

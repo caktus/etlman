@@ -51,5 +51,16 @@ class StepForm(forms.ModelForm):
 class PipelineScheduleForm(forms.ModelForm):
     class Meta:
         model = PipelineSchedule
-        fields = ["date", "published"]
-        labels = {"date": "Date and time"}
+        fields = [
+            "start_date",
+            "start_time",
+            "time_zone",
+            "frequency",
+            "interval",
+            "unit",
+            "published",
+        ]
+        help_texts = {
+            "start_date": "YYYY-MM-DD",
+            "start_time": "00:00:00",
+        }
