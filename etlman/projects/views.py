@@ -208,10 +208,11 @@ def new_step_step2(request, project_id, step_id=None):
                 request,
                 [pipeline_session_key, data_interface_session_key, step_session_key],
             )
+            pipeline_id = new_pipeline.pk if new_pipeline.pk else form_step.instance.pk
             return HttpResponseRedirect(
                 reverse(
                     "projects:schedule_pipeline",
-                    args=(project.pk, form_step.instance.pk),
+                    args=(project.pk, pipeline_id),
                 )
             )
 
@@ -325,11 +326,17 @@ def test_step_connection_string(request, project_id):
 
 
 @authorize(user_is_project_collaborator)
-def schedule_pipeline_runtime(request, project_id, pipeline_id=None):
+def schedule_pipeline_runtime(request, project_id, pipeline_id):
     project = get_object_or_404(Project, pk=project_id)
-    pipeline = get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
+    pipeline = get_object_or_404(Pipeline, pk=pipeline_id)
+    # Safely check for existence of related object:
+    # https://stackoverflow.com/a/40743258/166053
+    if hasattr(pipeline, "schedule"):
+        pipeline_schedule = pipeline.schedule
+    else:
+        pipeline_schedule = None
     if request.method == "POST":
-        form = PipelineScheduleForm(request.POST)
+        form = PipelineScheduleForm(request.POST, instance=pipeline_schedule)
         if form.is_valid():
             schedule_form = form.save(commit=False)
             schedule_form.pipeline = pipeline
@@ -339,6 +346,6 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id=None):
             )
 
     else:
-        form = PipelineScheduleForm()
+        form = PipelineScheduleForm(instance=pipeline_schedule)
     context = {"form": form, "project": project, "pipeline": pipeline}
     return render(request, "projects/schedule_pipeline.html", context)
