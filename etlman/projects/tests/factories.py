@@ -55,3 +55,20 @@ class StepFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.Step
+
+
+class PipelineScheduleFactory(factory.django.DjangoModelFactory):
+    pipeline = factory.SubFactory(PipelineFactory)
+    start_date = factory.Faker("date_this_year")
+    start_time = factory.Faker("time")
+    frequency = factory.fuzzy.FuzzyChoice(
+        [key for key, _ in models.PipelineSchedule.FREQUENCY_INTERVALS]
+    )
+    interval = factory.Sequence(lambda n: n)
+    unit = factory.fuzzy.FuzzyChoice(
+        [key for key, _ in models.PipelineSchedule.UNIT_INTERVALS]
+    )
+    published = factory.Faker("pybool")
+
+    class Meta:
+        model = models.PipelineSchedule
