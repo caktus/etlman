@@ -1,3 +1,4 @@
+import datetime
 import os
 from http import HTTPStatus
 
@@ -5,11 +6,12 @@ import pytest
 from django.urls import reverse
 
 from etlman.projects.forms import DataInterfaceForm, PipelineForm, StepForm
-from etlman.projects.models import DataInterface, Pipeline, Step
+from etlman.projects.models import DataInterface, Pipeline, PipelineSchedule, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     DataInterfaceFactory,
     PipelineFactory,
+    PipelineScheduleFactory,
     StepFactory,
 )
 from etlman.projects.views import SessionKeyEnum, get_session_key
@@ -494,3 +496,116 @@ class TestScriptConnectionTestView:
         )
         assert response.status_code == HTTPStatus.OK.numerator
         assert Step.objects.count() == 0
+
+
+@pytest.mark.django_db
+class TestPipelineSchedule:
+    def test_schedule_pipeline_get(self, nonadmin_client, project):
+        pipeline = PipelineFactory()
+        response = nonadmin_client.get(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            follow=True,
+        )
+        assert response.status_code == HTTPStatus.OK.numerator
+        assert PipelineSchedule.objects.count() == 0
+
+    def test_schedule_pipeline_post(self, nonadmin_client, project):
+        pipeline = PipelineFactory()
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "frequency": p_schedule.frequency,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+        assert PipelineSchedule.objects.count() == 0
+        response = nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        assert response.status_code == HTTPStatus.FOUND.numerator
+        assert PipelineSchedule.objects.count() == 1
+
+    def test_schedule_pipeline_post_missing_fields(self, nonadmin_client, project):
+        """A test that ensures that the form returns errors because fields are missing."""
+        pipeline = PipelineFactory()
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            # "start_date" # Intentionally blank
+            # "start_time" # Intentionally blank
+            "time_zone": p_schedule.time_zone,
+            "frequency": p_schedule.frequency,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        err_msg = {
+            "start_date": ["This field is required."],
+            "start_time": ["This field is required."],
+        }
+        assert response.status_code != HTTPStatus.FOUND.numerator
+        assert err_msg == response.context["form"].errors
+
+    def test_schedule_pipeline_post_invalid_values(self, nonadmin_client, project):
+        """A test that ensures that the form returns errors because fields are missing."""
+        pipeline = PipelineFactory()
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "frequency": "invalid_frequency",
+            "interval": p_schedule.interval,
+            "unit": "invalid_unit",
+            "published": p_schedule.published,
+        }
+
+        response = nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        err_msg = {
+            "frequency": [
+                "Select a valid choice. invalid_frequency is not one of the available choices."
+            ],
+            "unit": [
+                "Select a valid choice. invalid_unit is not one of the available choices."
+            ],
+        }
+
+        assert response.status_code != HTTPStatus.FOUND.numerator
+        assert err_msg == response.context["form"].errors
+
+    def test_schedule_pipeline_edit_existing_values(self, nonadmin_client, project):
+        pipeline = PipelineFactory(project=project)
+        p_schedule = PipelineScheduleFactory(pipeline=pipeline)
+        data = {
+            "start_date": datetime.date(2000, 12, 31),
+            "start_time": datetime.time(10, 10, 10),
+            "time_zone": p_schedule.time_zone,
+            "frequency": p_schedule.frequency,
+            "interval": 101,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+
+        response = nonadmin_client.post(
+            reverse(
+                "projects:schedule_pipeline", args=(project.pk, p_schedule.pipeline.id)
+            ),
+            data=data,
+        )
+        assert response.status_code == HTTPStatus.FOUND.numerator
+        assert PipelineSchedule.objects.count() == 1
+        db_p_schedule = PipelineSchedule.objects.get(pk=p_schedule.pk)
+        assert data["start_date"] == db_p_schedule.start_date
+        assert data["start_time"] == db_p_schedule.start_time
+        assert data["interval"] == db_p_schedule.interval

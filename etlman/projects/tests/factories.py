@@ -68,6 +68,9 @@ class PipelineScheduleFactory(factory.django.DjangoModelFactory):
     unit = factory.fuzzy.FuzzyChoice(
         [key for key, _ in models.PipelineSchedule.UNIT_INTERVALS]
     )
+    time_zone = factory.fuzzy.FuzzyChoice(
+        [key for key, _ in models.PipelineSchedule.TIMEZONES]
+    )
     published = factory.Faker("pybool")
 
     class Meta:
