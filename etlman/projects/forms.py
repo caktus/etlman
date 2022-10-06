@@ -60,7 +60,7 @@ class PipelineScheduleForm(forms.ModelForm):
             "unit",
             "published",
         ]
-        help_texts = {
-            "start_date": "YYYY-MM-DD",
-            "start_time": "00:00:00",
+        widgets = {
+            "start_date": forms.TextInput(attrs={"placeholder": "YYYY-MM-DD"}),
+            "start_time": forms.TextInput(attrs={"placeholder": "00:00:00"}),
         }

@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% block content %}
 <h1>{{ project }}</h1>
-<h3>{{ pipeline }} - {{ pipeline.name }}</h3>
+<h3>{{ pipeline }}</h3>
 <form method="post">
     {% csrf_token %}
     {{ form|crispy }}
