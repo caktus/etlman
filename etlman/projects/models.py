@@ -1,3 +1,4 @@
+import pytz
 from django.db import models
 
 from etlman.backends import get_backend
@@ -78,7 +79,7 @@ class Step(models.Model):
 
 
 class PipelineSchedule(models.Model):
-    TIMEZONES = [("UTC", "UTC"), ("AST", "AST"), ("MST", "MST"), ("PST", "PST")]
+    TIMEZONES = [(tz, tz) for tz in pytz.common_timezones]
     FREQUENCY_INTERVALS = [
         ("no_repeat", "Does not repeat"),
         ("every", "Every..."),
@@ -86,8 +87,8 @@ class PipelineSchedule(models.Model):
         ("hourly", "Hourly..."),
         ("daily", "Daily..."),
         ("weekly", "Weekly..."),
-        ("montly", "Montly..."),
-        ("anually", "Anually..."),
+        ("monthly", "Monthly..."),
+        ("annually", "Annually..."),
     ]
     UNIT_INTERVALS = [
         ("seconds", "Second(s)"),

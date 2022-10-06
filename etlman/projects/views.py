@@ -1,6 +1,7 @@
 import enum
 
 from denied.decorators import authorize
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -346,6 +347,11 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             )
 
     else:
-        form = PipelineScheduleForm(instance=pipeline_schedule)
+        form = PipelineScheduleForm(
+            instance=pipeline_schedule,
+            initial={"time_zone": settings.TIME_ZONE}
+            if pipeline_schedule is None
+            else None,
+        )
     context = {"form": form, "project": project, "pipeline": pipeline}
     return render(request, "projects/schedule_pipeline.html", context)

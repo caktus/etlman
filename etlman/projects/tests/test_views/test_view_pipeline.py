@@ -501,15 +501,16 @@ class TestScriptConnectionTestView:
 @pytest.mark.django_db
 class TestPipelineSchedule:
     def test_schedule_pipeline_get(self, nonadmin_client, project):
+        """The pipeline schedule form loads."""
         pipeline = PipelineFactory()
         response = nonadmin_client.get(
             reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
-            follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
         assert PipelineSchedule.objects.count() == 0
 
     def test_schedule_pipeline_post(self, nonadmin_client, project):
+        """PipelineSchedule saves data to the database."""
         pipeline = PipelineFactory()
         p_schedule = PipelineScheduleFactory.build()
         data = {
@@ -530,7 +531,7 @@ class TestPipelineSchedule:
         assert PipelineSchedule.objects.count() == 1
 
     def test_schedule_pipeline_post_missing_fields(self, nonadmin_client, project):
-        """A test that ensures that the form returns errors because fields are missing."""
+        """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
         p_schedule = PipelineScheduleFactory.build()
         data = {
@@ -551,11 +552,11 @@ class TestPipelineSchedule:
             "start_date": ["This field is required."],
             "start_time": ["This field is required."],
         }
-        assert response.status_code != HTTPStatus.FOUND.numerator
+        assert response.status_code == HTTPStatus.OK.numerator
         assert err_msg == response.context["form"].errors
 
     def test_schedule_pipeline_post_invalid_values(self, nonadmin_client, project):
-        """A test that ensures that the form returns errors because fields are missing."""
+        """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
         p_schedule = PipelineScheduleFactory.build()
         data = {
@@ -581,10 +582,11 @@ class TestPipelineSchedule:
             ],
         }
 
-        assert response.status_code != HTTPStatus.FOUND.numerator
+        assert response.status_code == HTTPStatus.OK.numerator
         assert err_msg == response.context["form"].errors
 
     def test_schedule_pipeline_edit_existing_values(self, nonadmin_client, project):
+        """Edit an existing PipelineSchedule and checks that values from DB match new data."""
         pipeline = PipelineFactory(project=project)
         p_schedule = PipelineScheduleFactory(pipeline=pipeline)
         data = {
