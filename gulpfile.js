@@ -31,6 +31,7 @@ function pathsConfig(appName) {
     vendorsJs: [
       `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
       `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
+      `${vendorsRoot}/monaco-editor/min/vs/loader.js`,
     ],
     app: this.app,
     templates: `${this.app}/templates`,
