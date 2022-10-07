@@ -8,6 +8,7 @@ from etlman.projects.views import (
     new_pipeline_step1,
     new_project,
     new_step_step2,
+    schedule_pipeline_runtime,
     test_db_connection_string,
     test_step_connection_string,
 )
@@ -60,5 +61,10 @@ urlpatterns = [
         "<int:project_id>/step-test/",
         view=test_step_connection_string,
         name="step_test",
+    ),
+    path(
+        "<int:project_id>/schedule/<int:pipeline_id>/",
+        view=schedule_pipeline_runtime,
+        name="schedule_pipeline",
     ),
 ]
