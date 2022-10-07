@@ -5,3 +5,7 @@ POSTGRES_PORT=5432
 POSTGRES_DB=etlman
 POSTGRES_USER=psEFhTUkzjtXzEhsxtSiTAooezSRXwRx
 POSTGRES_PASSWORD=SDmCkT5lQE5Y5gPn9E2GnpWd2LuTkvZ53RzFciscJQp3MPJG6WslZORW1vLIvySH
+
+# To get a shell in postgres (if the Django container won't start):
+# $ docker compose exec postgres bash
+# root@b2f3ad6f8735:/# psql postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/etlman
