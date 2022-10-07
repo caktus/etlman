@@ -1,4 +1,5 @@
 import enum
+import json
 
 from denied.decorators import authorize
 from django.conf import settings
@@ -7,6 +8,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from sqlalchemy import create_engine
 
 from etlman.projects.authorizers import (
@@ -339,13 +341,32 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
     if request.method == "POST":
         form = PipelineScheduleForm(request.POST, instance=pipeline_schedule)
         if form.is_valid():
-            schedule_form = form.save(commit=False)
-            schedule_form.pipeline = pipeline
-            schedule_form.save()
+            schedule = form.save(commit=False)
+            schedule.pipeline = pipeline
+            schedule.save()
+            # Celery Tasks
+            interval_schedule, _ = IntervalSchedule.objects.get_or_create(
+                every=schedule.interval,
+                period=schedule.unit,
+            )
+            if schedule.task:
+                schedule.task.interval = interval_schedule
+                schedule.task.save()
+            else:
+                schedule.task = PeriodicTask.objects.create(
+                    name=schedule.pipeline.name,
+                    task="etlman.projects.tasks.run_pipeline",
+                    kwargs=json.dumps(
+                        {
+                            "pipeline_id": schedule.pipeline.id,
+                        }
+                    ),
+                    interval=interval_schedule,
+                )
+                schedule.save()
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
             )
-
     else:
         form = PipelineScheduleForm(
             instance=pipeline_schedule,

@@ -1,5 +1,6 @@
 import pytz
 from django.db import models
+from django_celery_beat.models import PeriodicTask
 
 from etlman.backends import get_backend
 from etlman.users.models import User
@@ -99,6 +100,9 @@ class PipelineSchedule(models.Model):
         ("months", "Month(s)"),
         ("years", "Year(s)"),
     ]
+    task = models.ForeignKey(
+        PeriodicTask, on_delete=models.CASCADE, null=True, blank=True
+    )
     pipeline = models.OneToOneField(
         Pipeline, related_name="schedule", on_delete=models.CASCADE
     )
