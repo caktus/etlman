@@ -345,12 +345,15 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             schedule.pipeline = pipeline
             schedule.save()
             # Celery Tasks
+            # To create a periodic task executing at an interval, first create the interval object
+            # https://django-celery-beat.readthedocs.io/en/latest/#:~:text=To%20create%20a%20periodic%20task%20executing,%3E%3E%3E
             interval_schedule, _ = IntervalSchedule.objects.get_or_create(
                 every=schedule.interval,
                 period=schedule.unit,
             )
             if schedule.task:
                 schedule.task.interval = interval_schedule
+                schedule.task.enabled = schedule.published
                 schedule.task.save()
             else:
                 schedule.task = PeriodicTask.objects.create(
@@ -363,6 +366,7 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
                     ),
                     interval=interval_schedule,
                 )
+                schedule.task.enabled = schedule.published
                 schedule.save()
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
