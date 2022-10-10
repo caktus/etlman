@@ -332,6 +332,7 @@ def test_step_connection_string(request, project_id):
 def schedule_pipeline_runtime(request, project_id, pipeline_id):
     project = get_object_or_404(Project, pk=project_id)
     pipeline = get_object_or_404(Pipeline, pk=pipeline_id)
+    step = get_object_or_404(Step, pipeline=pipeline_id)
     # Safely check for existence of related object:
     # https://stackoverflow.com/a/40743258/166053
     if hasattr(pipeline, "schedule"):
@@ -343,10 +344,13 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
         if form.is_valid():
             schedule = form.save(commit=False)
             schedule.pipeline = pipeline
+            schedule.step = step
             schedule.save()
             # Celery Tasks
-            # To create a periodic task executing at an interval, first create the interval object
+            # To create a periodic task executing at an interval, first
+            # create the IntervalSchedule then a PeriodicTask or CrontabSchedule.
             # https://django-celery-beat.readthedocs.io/en/latest/#:~:text=To%20create%20a%20periodic%20task%20executing,%3E%3E%3E
+            task_datetime = f"{str(schedule.start_date)} {str(schedule.start_time)}"
             interval_schedule, _ = IntervalSchedule.objects.get_or_create(
                 every=schedule.interval,
                 period=schedule.unit,
@@ -354,6 +358,7 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             if schedule.task:
                 schedule.task.interval = interval_schedule
                 schedule.task.enabled = schedule.published
+                schedule.task.start_time = task_datetime
                 schedule.task.save()
             else:
                 schedule.task = PeriodicTask.objects.create(
@@ -365,6 +370,7 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
                         }
                     ),
                     interval=interval_schedule,
+                    start_time=task_datetime,
                 )
                 schedule.task.enabled = schedule.published
                 schedule.save()
@@ -378,5 +384,5 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             if pipeline_schedule is None
             else None,
         )
-    context = {"form": form, "project": project, "pipeline": pipeline}
+    context = {"form": form, "project": project, "pipeline": pipeline, "step": step}
     return render(request, "projects/schedule_pipeline.html", context)

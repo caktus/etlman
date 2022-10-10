@@ -1,6 +1,6 @@
 import pytz
 from django.db import models
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PERIOD_CHOICES, PeriodicTask
 
 from etlman.backends import get_backend
 from etlman.users.models import User
@@ -81,25 +81,25 @@ class Step(models.Model):
 
 class PipelineSchedule(models.Model):
     TIMEZONES = [(tz, tz) for tz in pytz.common_timezones]
-    FREQUENCY_INTERVALS = [
-        ("no_repeat", "Does not repeat"),
-        ("every", "Every..."),
-        ("every_other", "Every other..."),
-        ("hourly", "Hourly..."),
-        ("daily", "Daily..."),
-        ("weekly", "Weekly..."),
-        ("monthly", "Monthly..."),
-        ("annually", "Annually..."),
-    ]
-    UNIT_INTERVALS = [
-        ("seconds", "Second(s)"),
-        ("minutes", "Minute(s)"),
-        ("hours", "Hour(s)"),
-        ("days", "Day(s)"),
-        ("weeks", "Week(s)"),
-        ("months", "Month(s)"),
-        ("years", "Year(s)"),
-    ]
+    # FREQUENCY_INTERVALS = [
+    #     ("no_repeat", "Does not repeat"),
+    #     ("every", "Every..."),
+    #     ("every_other", "Every other..."),
+    #     ("hourly", "Hourly..."),
+    #     ("daily", "Daily..."),
+    #     ("weekly", "Weekly..."),
+    #     ("monthly", "Monthly..."),
+    #     ("annually", "Annually..."),
+    # ]
+    # UNIT_INTERVALS = [
+    #     ("seconds", "Second(s)"),
+    #     ("minutes", "Minute(s)"),
+    #     ("hours", "Hour(s)"),
+    #     ("days", "Day(s)"),
+    #     ("weeks", "Week(s)"),
+    #     ("months", "Month(s)"),
+    #     ("years", "Year(s)"),
+    # ]
     task = models.ForeignKey(
         PeriodicTask, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -109,9 +109,9 @@ class PipelineSchedule(models.Model):
     start_date = models.DateField()
     start_time = models.TimeField()
     time_zone = models.CharField(max_length=56, choices=TIMEZONES)
-    frequency = models.CharField(max_length=56, choices=FREQUENCY_INTERVALS)
+    frequency = models.CharField(max_length=56, choices=PERIOD_CHOICES)
     interval = models.IntegerField(blank=True, null=True)
     unit = models.CharField(
-        max_length=56, blank=True, null=True, choices=UNIT_INTERVALS
+        max_length=56, blank=True, null=True, choices=PERIOD_CHOICES
     )
     published = models.BooleanField(default=False)
