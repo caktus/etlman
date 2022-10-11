@@ -1,13 +1,10 @@
 from celery import shared_task
 
-from etlman.projects.models import Pipeline
+from etlman.projects.models import Step
 
 
 @shared_task
-def run_pipeline(pipeline_id):
-    pipeline = Pipeline.objects.get(id=pipeline_id)
-    print(f"Pipelinerunning on celery - Pipeline_id: {pipeline.id}")
-
-    # step = Step.objects.get(id=step_id)
-    # print(f"Step running on celery - Pipeline_id: {step.id}")
+def run_pipeline(step_id):
+    step = Step.objects.get(id=step_id)
+    print(f"Step running on celery - Step_id: {step.id}")
     # step.run_script()

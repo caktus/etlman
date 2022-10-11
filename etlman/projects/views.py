@@ -366,7 +366,7 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
                     task="etlman.projects.tasks.run_pipeline",
                     kwargs=json.dumps(
                         {
-                            "pipeline_id": schedule.pipeline.id,
+                            "step_id": schedule.step.id,
                         }
                     ),
                     interval=interval_schedule,
