@@ -513,6 +513,7 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post(self, nonadmin_client, project):
         """PipelineSchedule saves data to the database."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             "start_date": p_schedule.start_date,
@@ -533,12 +534,12 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post_missing_fields(self, nonadmin_client, project):
         """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             # "start_date" # Intentionally blank
             # "start_time" # Intentionally blank
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": p_schedule.interval,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
@@ -558,12 +559,12 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post_invalid_values(self, nonadmin_client, project):
         """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             "start_date": p_schedule.start_date,
             "start_time": p_schedule.start_time,
             "time_zone": p_schedule.time_zone,
-            "frequency": "invalid_frequency",
             "interval": p_schedule.interval,
             "unit": "invalid_unit",
             "published": p_schedule.published,
@@ -574,9 +575,6 @@ class TestPipelineSchedule:
             data=data,
         )
         err_msg = {
-            "frequency": [
-                "Select a valid choice. invalid_frequency is not one of the available choices."
-            ],
             "unit": [
                 "Select a valid choice. invalid_unit is not one of the available choices."
             ],
@@ -588,6 +586,7 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_edit_existing_values(self, nonadmin_client, project):
         """Edit an existing PipelineSchedule and checks that values from DB match new data."""
         pipeline = PipelineFactory(project=project)
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory(pipeline=pipeline)
         data = {
             "start_date": datetime.date(2000, 12, 31),
