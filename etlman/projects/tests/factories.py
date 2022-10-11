@@ -1,5 +1,6 @@
 import factory
 import factory.fuzzy
+from django_celery_beat.models import PERIOD_CHOICES
 
 from etlman.projects import models
 from etlman.users.tests.factories import UserFactory
@@ -61,13 +62,8 @@ class PipelineScheduleFactory(factory.django.DjangoModelFactory):
     pipeline = factory.SubFactory(PipelineFactory)
     start_date = factory.Faker("date_this_year")
     start_time = factory.Faker("time")
-    frequency = factory.fuzzy.FuzzyChoice(
-        [key for key, _ in models.PipelineSchedule.FREQUENCY_INTERVALS]
-    )
     interval = factory.Sequence(lambda n: n)
-    unit = factory.fuzzy.FuzzyChoice(
-        [key for key, _ in models.PipelineSchedule.UNIT_INTERVALS]
-    )
+    unit = factory.fuzzy.FuzzyChoice([key for key, _ in PERIOD_CHOICES])
     time_zone = factory.fuzzy.FuzzyChoice(
         [key for key, _ in models.PipelineSchedule.TIMEZONES]
     )

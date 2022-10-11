@@ -500,11 +500,12 @@ class TestScriptConnectionTestView:
 
 @pytest.mark.django_db
 class TestPipelineSchedule:
-    def test_schedule_pipeline_get(self, nonadmin_client, project):
+    def test_schedule_pipeline_get(self, nonadmin_client, client, project):
         """The pipeline schedule form loads."""
         pipeline = PipelineFactory()
-        response = nonadmin_client.get(
+        response = client.get(
             reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
         assert PipelineSchedule.objects.count() == 0
@@ -517,7 +518,6 @@ class TestPipelineSchedule:
             "start_date": p_schedule.start_date,
             "start_time": p_schedule.start_time,
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": p_schedule.interval,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
@@ -593,7 +593,6 @@ class TestPipelineSchedule:
             "start_date": datetime.date(2000, 12, 31),
             "start_time": datetime.time(10, 10, 10),
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": 101,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
