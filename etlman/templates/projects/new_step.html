@@ -2,6 +2,24 @@
 {% load crispy_forms_tags %}
 {% block content %}
 <script src="https://unpkg.com/htmx.org@1.8.0"></script>
+<!-- <script data-status_code="{{ status_code }}"> -->
+<script>
+    // const data = document.currentScript.dataset;
+    // const status_code = (data.status_code.toLowerCase() === 'true');
+    // console.log(data)
+    // // console.log(status_code)
+
+    // // let manage = (status_code) => {
+    // //     let buttonTest = document.getElementById('btTestScript');
+    // //     if (buttonTest == true) {
+    // //         console.log("True")
+    // //     }
+    // //     else {
+    // //         console.log("False")
+    // //     }
+    // // }
+    // console.log(status_code)
+</script>
 <div class="container">
     <form method="post">
         {% csrf_token %}
@@ -12,13 +30,15 @@
                     <button type="submit" name="back" class="btn btn-danger">Back</button>
                 </div>
                 <div class="col text-center">
-                    <button type="submit" class="btn btn-info" hx-post="{% url 'projects:step_test' project.pk %}"
+                    <button type="submit" id="btTestScript" class="btn btn-info"
+                        hx-post="{% url 'projects:step_test' project.pk %}"
                         hx-headers='{"X-CSRFToken": "{% csrf_token %}"}' hx-target="#step_result"
-                        hx-include="[name='language']" hx-vals="js:{script: monacoEditorscript.getModel().getValue()}">
+                        hx-include="[name='language']" hx-vals="js:{script: monacoEditorscript.getModel().getValue()}"
+                        onkeyup="manage(this)">
                         Test Script
                     </button>
                 </div>
-                <div class="col">
+                <div class=" col">
                     <div class="control-group">
                         <div class="d-flex flex-row-reverse">
                             <button type="submit" name="save" class="btn btn-primary">Save Pipeline</button>

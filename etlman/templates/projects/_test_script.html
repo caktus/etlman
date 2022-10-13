@@ -1,4 +1,19 @@
 {% load crispy_forms_tags %}
+<script data-status-code="{{ status_code }}">
+    const data = document.currentScript.dataset;
+    const statusCode = parseInt(data.statusCode);
+    console.log(statusCode);
+    let manage = () => {
+        let buttonTest = document.getElementById('btTestScript');
+        if (statusCode === 0) {
+            console.log("That script can go on");
+        }
+        else {
+            console.log("Halt the script");
+        }
+        console.log("Someone clicked the button!");
+    }
+</script>
 <div class="container" id="step_result">
     <h1>Script Status </h1>
     <h2>{{ message }}</h2>
