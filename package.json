@@ -30,6 +30,7 @@
     "build": "gulp generate-assets"
   },
   "dependencies": {
+    "htmx.org": "^1.8.0",
     "monaco-editor": "^0.34.0"
   }
 }

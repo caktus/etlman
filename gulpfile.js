@@ -31,8 +31,13 @@ function pathsConfig(appName) {
     vendorsJs: [
       `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
       `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
-      `${vendorsRoot}/monaco-editor/min/vs/loader.js`,
     ],
+    htmxJs: [
+      `${vendorsRoot}/htmx.org/dist/htmx.min.js`,
+      `${vendorsRoot}/htmx.org/dist/ext/debug.js`,
+      `${vendorsRoot}/htmx.org/dist/ext/event-header.js`,
+    ],
+    // monacoJs: `${vendorsRoot}/monaco-editor/esm`,
     app: this.app,
     templates: `${this.app}/templates`,
     css: `${this.app}/static/css`,
@@ -95,6 +100,28 @@ function vendorScripts() {
     .pipe(dest(paths.js))
 }
 
+// htmx Javascript minification
+function htmxScripts() {
+  return src(paths.htmxJs)
+    .pipe(concat('htmx.js'))
+    .pipe(dest(paths.js))
+    .pipe(plumber()) // Checks for errors
+    .pipe(uglify()) // Minifies the js
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(dest(paths.js))
+}
+
+// monaco Javascript minification
+// function monacoScripts() {
+//   return src(`${paths.js}/monacoJs`)
+//   .pipe(concat('monaco.js'))
+//   .pipe(dest(paths.js))
+//   .pipe(plumber()) // Checks for errors
+//   .pipe(uglify()) // Minifies the js
+//   .pipe(rename({ suffix: '.min' }))
+//   .pipe(dest(paths.js))
+// }
+
 // Image compression
 function imgCompression() {
   return src(`${paths.images}/*`)
@@ -147,6 +174,8 @@ const generateAssets = parallel(
   styles,
   scripts,
   vendorScripts,
+  htmxScripts,
+  // monacoScripts,
   imgCompression
 )
 
