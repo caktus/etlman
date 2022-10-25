@@ -136,11 +136,6 @@ class PipelineSchedule(models.Model):
         )
         if self.task:
             PeriodicTask.objects.filter(pk=self.task.pk).update(**task_params)
-            # Call del self.task to force Django to refresh task if it is accessed again
-            # after calling save()
-            # https://docs.djangoproject.com/en/4.1/ref/models/instances/#refreshing-objects-from-database
-            # FIXME: This raises an exception.
-            # del self.task
         else:
             self.task = PeriodicTask.objects.create(**task_params)
         super().save(*args, **kwargs)
