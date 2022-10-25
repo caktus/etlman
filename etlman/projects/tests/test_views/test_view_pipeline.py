@@ -588,9 +588,11 @@ class TestPipelineSchedule:
         pipeline = PipelineFactory(project=project)
         StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory(pipeline=pipeline)
+        start_date = datetime.date(2000, 12, 31)
+        start_time = datetime.time(10, 10, 10)
         data = {
-            "start_date": datetime.date(2000, 12, 31),
-            "start_time": datetime.time(10, 10, 10),
+            "start_date": start_date.strftime("%Y-%m-%d"),
+            "start_time": start_time.strftime("%H:%M:%S"),
             "time_zone": p_schedule.time_zone,
             "interval": 101,
             "unit": p_schedule.unit,
@@ -606,6 +608,6 @@ class TestPipelineSchedule:
         assert response.status_code == HTTPStatus.FOUND.numerator
         assert PipelineSchedule.objects.count() == 1
         db_p_schedule = PipelineSchedule.objects.get(pk=p_schedule.pk)
-        assert data["start_date"] == db_p_schedule.start_date
-        assert data["start_time"] == db_p_schedule.start_time
+        assert start_date == db_p_schedule.start_date
+        assert start_time == db_p_schedule.start_time
         assert data["interval"] == db_p_schedule.interval

@@ -1,5 +1,4 @@
 import enum
-import json
 
 from denied.decorators import authorize
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from sqlalchemy import create_engine
 
 from etlman.projects.authorizers import (
@@ -109,7 +107,7 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
     loaded_pipeline = (
         get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
     )
-    loaded_step = loaded_pipeline.step_set.all().first() if loaded_pipeline else None
+    loaded_step = loaded_pipeline.steps.all().first() if loaded_pipeline else None
     loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
     username = request.user.username
     pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
@@ -345,36 +343,7 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
         if form.is_valid():
             schedule = form.save(commit=False)
             schedule.pipeline = pipeline
-            schedule.step = step
             schedule.save()
-            # Celery Tasks
-            # To create a periodic task executing at an interval, first
-            # create the IntervalSchedule then a PeriodicTask or CrontabSchedule.
-            # https://django-celery-beat.readthedocs.io/en/latest/#:~:text=To%20create%20a%20periodic%20task%20executing,%3E%3E%3E
-            task_datetime = f"{str(schedule.start_date)} {str(schedule.start_time)}"
-            interval_schedule, _ = IntervalSchedule.objects.get_or_create(
-                every=schedule.interval,
-                period=schedule.unit,
-            )
-            if schedule.task:
-                schedule.task.interval = interval_schedule
-                schedule.task.enabled = schedule.published
-                schedule.task.start_time = task_datetime
-                schedule.task.save()
-            else:
-                schedule.task = PeriodicTask.objects.create(
-                    name=schedule.pipeline.name,
-                    task="etlman.projects.tasks.run_pipeline",
-                    kwargs=json.dumps(
-                        {
-                            "step_id": schedule.step.id,
-                        }
-                    ),
-                    interval=interval_schedule,
-                    start_time=task_datetime,
-                )
-                schedule.task.enabled = schedule.published
-                schedule.save()
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
             )
