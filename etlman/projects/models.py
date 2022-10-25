@@ -139,3 +139,12 @@ class PipelineSchedule(models.Model):
         else:
             self.task = PeriodicTask.objects.create(**task_params)
         super().save(*args, **kwargs)
+
+
+class PipelineRun(models.Model):
+    pipeline = models.ForeignKey(
+        Pipeline, on_delete=models.CASCADE, related_name="run_pipeline"
+    )
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField()
+    output = models.JSONField()
