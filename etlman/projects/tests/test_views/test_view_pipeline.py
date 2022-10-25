@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 from etlman.projects.forms import DataInterfaceForm, PipelineForm, StepForm
 from etlman.projects.models import DataInterface, Pipeline, PipelineSchedule, Step
@@ -500,7 +501,7 @@ class TestScriptConnectionTestView:
 
 @pytest.mark.django_db
 class TestPipelineSchedule:
-    def test_schedule_pipeline_get(self, nonadmin_client, client, project):
+    def test_schedule_pipeline_get(self, client, project):
         """The pipeline schedule form loads."""
         pipeline = PipelineFactory()
         response = client.get(
@@ -611,3 +612,69 @@ class TestPipelineSchedule:
         assert start_date == db_p_schedule.start_date
         assert start_time == db_p_schedule.start_time
         assert data["interval"] == db_p_schedule.interval
+
+
+@pytest.mark.django_db
+class TestDjangoCeleryBeat:
+    def test_django_celery_beat_task_and_schedule(self, nonadmin_client, project):
+        """
+        Interval Schedule and Periodic Task exist because Pipeline
+        Schedule was created. Name, interval, and unit match.
+        """
+        pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        pipeline_schedule = PipelineSchedule.objects.get()
+        periodic_task = PeriodicTask.objects.all().first()
+
+        assert IntervalSchedule.objects.count() == 1
+        assert PeriodicTask.objects.count() == 1
+        assert pipeline_schedule.pipeline.name == periodic_task.name
+        assert pipeline_schedule.interval == periodic_task.interval.every
+        assert pipeline_schedule.unit == periodic_task.interval.period
+
+    def test_django_celery_beat_one_interval_several_tasks(
+        self, nonadmin_client, project
+    ):
+        """One interval schedule exists along with 3 different periodic tasks."""
+        pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        pipeline2 = PipelineFactory()
+        StepFactory(pipeline=pipeline2)
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline2.id)),
+            data=data,
+        )
+        pipeline3 = PipelineFactory()
+        StepFactory(pipeline=pipeline3)
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline3.id)),
+            data=data,
+        )
+        assert IntervalSchedule.objects.count() == 1
+        assert PeriodicTask.objects.count() == 3
