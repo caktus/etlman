@@ -4,6 +4,7 @@ from .models import (
     Collaborator,
     DataInterface,
     Pipeline,
+    PipelineRun,
     PipelineSchedule,
     Project,
     Step,
@@ -50,8 +51,14 @@ class PipelineScheduleAdmin(admin.ModelAdmin):
     list_filter = ("published",)
 
 
+class PipelineRunAdmin(admin.ModelAdmin):
+    list_display = ["pipeline", "started_at", "ended_at", "output"]
+    list_filter = ("started_at", "ended_at")
+
+
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(DataInterface, DataInterfaceAdmin)
 admin.site.register(Pipeline, PipelineAdmin)
 admin.site.register(Step, StepAdmin)
 admin.site.register(PipelineSchedule, PipelineScheduleAdmin)
+admin.site.register(PipelineRun, PipelineRunAdmin)
