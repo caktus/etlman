@@ -1,20 +1,8 @@
-<script defer>
-  console.log("monaco.js");
-  let model = `{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`;
-  let id = "id_{{ widget.name }}";
-  let monacoEditor = monaco.editor.create(document.getElementById(id), {
-    model: monaco.editor.createModel(model),
-    theme: "vs-dark",
-    wordWrap: "on",
-    automaticLayout: true,
-    minimap: {
-      enabled: false,
-    },
-    scrollbar: {
-      vertical: "auto",
-    },
-    language: "",
-  });
+<script type="module">
+  let monacoEditor = createEditor(
+    "id_{{ widget.name }}",
+    `{% if widget.value != None %}{{ widget.value | escapejs }}{% endif %}`
+  );
 
   const forms = document.getElementsByTagName("form");
   for (let index = 0; index < forms.length; index++) {
@@ -24,10 +12,12 @@
     });
   }
 
-  const selectedLanguage = (lang) => {
-    monaco.editor.setModelLanguage(monacoEditor.getModel(), lang);
-  };
-  selectedLanguage(document.getElementById("id_language").value);
+  let languageDropdown = document.getElementById("id_language");
+  languageDropdown.addEventListener("change", function (e) {
+    selectedLanguage(monacoEditor.getModel(), e.target.value);
+  });
+
+  selectedLanguage(monacoEditor.getModel(), languageDropdown.value);
 </script>
 
 <!-- TODO: This CSS is very hackish, we *may* want to change it -->

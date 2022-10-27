@@ -28,7 +28,6 @@ function pathsConfig(appName) {
 
   return {
     bootstrapSass: `${vendorsRoot}/bootstrap/scss`,
-    // monacoCss: `${vendorsRoot}/monaco-editor/min/vs/editor/editor.main.css`,
     // vendorsJs: [
     //   `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
     //   `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
@@ -85,24 +84,6 @@ function styles() {
     .pipe(dest(paths.css))
 }
 
-function monacoStyles() {
-  var processCss = [
-      autoprefixer(), // adds vendor prefixes
-      pixrem(),       // add fallbacks for rem units
-  ]
-
-  var minifyCss = [
-      cssnano({ preset: 'default' })   // minify result
-  ]
-  return src(paths.monacoCss)
-    .pipe(plumber()) // Checks for errors
-    .pipe(postcss(processCss))
-    .pipe(dest(paths.css))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(postcss(minifyCss)) // Minifies the result
-    .pipe(dest(paths.css))
-}
-
 // Javascript minification
 function scripts() {
   return src(`${paths.js}/project.js`)
@@ -112,38 +93,38 @@ function scripts() {
     .pipe(dest(paths.js))
 }
 
-// Vendor Javascript minification
-function vendorScripts() {
-  return src(paths.vendorsJs)
-    .pipe(concat('vendors.js'))
-    .pipe(dest(paths.js))
-    .pipe(plumber()) // Checks for errors
-    .pipe(uglify()) // Minifies the js
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(dest(paths.js))
-}
+// // Vendor Javascript minification
+// function vendorScripts() {
+//   return src(paths.vendorsJs)
+//     .pipe(concat('vendors.js'))
+//     .pipe(dest(paths.js))
+//     .pipe(plumber()) // Checks for errors
+//     .pipe(uglify()) // Minifies the js
+//     .pipe(rename({ suffix: '.min' }))
+//     .pipe(dest(paths.js))
+// }
 
-// htmx Javascript minification
-function htmxScripts() {
-  return src(paths.htmxJs)
-    .pipe(concat('htmx.js'))
-    .pipe(dest(paths.js))
-    .pipe(plumber()) // Checks for errors
-    .pipe(uglify()) // Minifies the js
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(dest(paths.js))
-}
+// // htmx Javascript minification
+// function htmxScripts() {
+//   return src(paths.htmxJs)
+//     .pipe(concat('htmx.js'))
+//     .pipe(dest(paths.js))
+//     .pipe(plumber()) // Checks for errors
+//     .pipe(uglify()) // Minifies the js
+//     .pipe(rename({ suffix: '.min' }))
+//     .pipe(dest(paths.js))
+// }
 
-// monaco Javascript minification
-function monacoScripts() {
-  return src(paths.monacoJs)
-  .pipe(concat('monaco.js'))
-  .pipe(dest(paths.js))
-  .pipe(plumber()) // Checks for errors
-  .pipe(uglify()) // Minifies the js
-  .pipe(rename({ suffix: '.min' }))
-  .pipe(dest(paths.js))
-}
+// // monaco Javascript minification
+// function monacoScripts() {
+//   return src(paths.monacoJs)
+//   .pipe(concat('monaco.js'))
+//   .pipe(dest(paths.js))
+//   .pipe(plumber()) // Checks for errors
+//   .pipe(uglify()) // Minifies the js
+//   .pipe(rename({ suffix: '.min' }))
+//   .pipe(dest(paths.js))
+// }
 
 // Image compression
 function imgCompression() {
@@ -188,7 +169,6 @@ function initBrowserSync() {
 // Watch
 function watchPaths() {
   watch(`${paths.sass}/*.scss`, styles)
-  watch(`${paths.css}/*.css`, monacoStyles)
   watch(`${paths.templates}/**/*.html`).on("change", reload)
   watch([`${paths.js}/*.js`, `!${paths.js}/*.min.js`], scripts).on("change", reload)
 }
@@ -196,7 +176,6 @@ function watchPaths() {
 // Generate all assets
 const generateAssets = parallel(
   styles,
-  // monacoStyles,
   scripts,
   // vendorScripts,
   // htmxScripts,
