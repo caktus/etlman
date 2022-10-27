@@ -28,16 +28,21 @@ function pathsConfig(appName) {
 
   return {
     bootstrapSass: `${vendorsRoot}/bootstrap/scss`,
-    vendorsJs: [
-      `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
-      `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
-    ],
-    htmxJs: [
-      `${vendorsRoot}/htmx.org/dist/htmx.min.js`,
-      `${vendorsRoot}/htmx.org/dist/ext/debug.js`,
-      `${vendorsRoot}/htmx.org/dist/ext/event-header.js`,
-    ],
-    // monacoJs: `${vendorsRoot}/monaco-editor/esm`,
+    // monacoCss: `${vendorsRoot}/monaco-editor/min/vs/editor/editor.main.css`,
+    // vendorsJs: [
+    //   `${vendorsRoot}/@popperjs/core/dist/umd/popper.js`,
+    //   `${vendorsRoot}/bootstrap/dist/js/bootstrap.js`,
+    // ],
+    // htmxJs: [
+    //   `${vendorsRoot}/htmx.org/dist/htmx.min.js`,
+    //   `${vendorsRoot}/htmx.org/dist/ext/debug.js`,
+    //   `${vendorsRoot}/htmx.org/dist/ext/event-header.js`,
+    // ],
+    // monacoJs: [
+    //   `${vendorsRoot}/monaco-editor/min/vs/editor/editor.main.js`,
+    //   `${vendorsRoot}/monaco-editor/min/vs/editor/editor.main.nls.js`,
+    //   `${vendorsRoot}/monaco-editor/min/vs/loader.js`,
+    // ],
     app: this.app,
     templates: `${this.app}/templates`,
     css: `${this.app}/static/css`,
@@ -80,6 +85,24 @@ function styles() {
     .pipe(dest(paths.css))
 }
 
+function monacoStyles() {
+  var processCss = [
+      autoprefixer(), // adds vendor prefixes
+      pixrem(),       // add fallbacks for rem units
+  ]
+
+  var minifyCss = [
+      cssnano({ preset: 'default' })   // minify result
+  ]
+  return src(paths.monacoCss)
+    .pipe(plumber()) // Checks for errors
+    .pipe(postcss(processCss))
+    .pipe(dest(paths.css))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(postcss(minifyCss)) // Minifies the result
+    .pipe(dest(paths.css))
+}
+
 // Javascript minification
 function scripts() {
   return src(`${paths.js}/project.js`)
@@ -112,15 +135,15 @@ function htmxScripts() {
 }
 
 // monaco Javascript minification
-// function monacoScripts() {
-//   return src(`${paths.js}/monacoJs`)
-//   .pipe(concat('monaco.js'))
-//   .pipe(dest(paths.js))
-//   .pipe(plumber()) // Checks for errors
-//   .pipe(uglify()) // Minifies the js
-//   .pipe(rename({ suffix: '.min' }))
-//   .pipe(dest(paths.js))
-// }
+function monacoScripts() {
+  return src(paths.monacoJs)
+  .pipe(concat('monaco.js'))
+  .pipe(dest(paths.js))
+  .pipe(plumber()) // Checks for errors
+  .pipe(uglify()) // Minifies the js
+  .pipe(rename({ suffix: '.min' }))
+  .pipe(dest(paths.js))
+}
 
 // Image compression
 function imgCompression() {
@@ -165,6 +188,7 @@ function initBrowserSync() {
 // Watch
 function watchPaths() {
   watch(`${paths.sass}/*.scss`, styles)
+  watch(`${paths.css}/*.css`, monacoStyles)
   watch(`${paths.templates}/**/*.html`).on("change", reload)
   watch([`${paths.js}/*.js`, `!${paths.js}/*.min.js`], scripts).on("change", reload)
 }
@@ -172,9 +196,10 @@ function watchPaths() {
 // Generate all assets
 const generateAssets = parallel(
   styles,
+  // monacoStyles,
   scripts,
-  vendorScripts,
-  htmxScripts,
+  // vendorScripts,
+  // htmxScripts,
   // monacoScripts,
   imgCompression
 )

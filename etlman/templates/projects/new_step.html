@@ -14,7 +14,7 @@
                 <div class="col text-center">
                     <button type="submit" class="btn btn-info" hx-post="{% url 'projects:step_test' project.pk %}"
                         hx-headers='{"X-CSRFToken": "{% csrf_token %}"}' hx-target="#step_result"
-                        hx-include="[name='language']" hx-vals="js:{script: monacoEditorscript.getModel().getValue()}">
+                        hx-include="[name='language']" hx-vals="js:{script: getMonacoValue()}">
                         Test Script
                     </button>
                 </div>
