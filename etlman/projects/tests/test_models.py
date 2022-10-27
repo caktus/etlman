@@ -1,6 +1,7 @@
 import pytest
 
 from etlman.backends.test_backend import TestBackend
+from etlman.projects.models import PipelineRun
 from etlman.projects.tests.factories import (
     DataInterfaceFactory,
     PipelineFactory,
@@ -34,7 +35,9 @@ class TestPipelineModel:
         pipeline.run_pipeline(backend=backend)
         # assertions to check for:
         # - count of PipelineRuns
+        PipelineRun.objects.count() == 1
         # - get the one PipelineRun that was created
+        PipelineRun.objects.all()
         # - check all attributes on the PipelineRun object
 
     def test_run_pipeline_multiple_steps(self):

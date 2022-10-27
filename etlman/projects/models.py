@@ -57,7 +57,6 @@ class Pipeline(models.Model):
             "pipeline_id": self.pk,
             "steps": [],
         }
-        step_start, step_end = None, None
         for step in self.steps.order_by("step_order").all():
             returncode, stdout, stderr = step.run_script(backend=backend)
             output["steps"].append(
@@ -68,11 +67,11 @@ class Pipeline(models.Model):
                     "stderr": stderr,
                 }
             )
-            step_start = step.start_datetime
-            step_end = step.last_run_datetime
-
         PipelineRun.objects.create(
-            pipeline=self.pk, started_at=step_start, ended_at=step_end, output=output
+            pipeline=self.pk,
+            started_at=self.schedule.task.start_time,
+            ended_at=self.schedule.task.last_run_at,
+            output=output,
         )
 
     def __str__(self):
