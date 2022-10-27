@@ -50,11 +50,30 @@ class Pipeline(models.Model):
     name = models.CharField(max_length=256)
     input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
 
-    def run_pipeline(self):
-        backend = get_backend()
+    def run_pipeline(self, backend=None):
+        if backend is None:
+            backend = get_backend()
+        output = {
+            "pipeline_id": self.pk,
+            "steps": [],
+        }
+        step_start, step_end = None, None
         for step in self.steps.order_by("step_order").all():
-            step.run_script(backend=backend)
-            # TODO: Save results from script execution here
+            returncode, stdout, stderr = step.run_script(backend=backend)
+            output["steps"].append(
+                {
+                    "step_id": step.pk,
+                    "returncode": returncode,
+                    "stdout": stdout,
+                    "stderr": stderr,
+                }
+            )
+            step_start = step.start_datetime
+            step_end = step.last_run_datetime
+
+        PipelineRun.objects.create(
+            pipeline=self.pk, started_at=step_start, ended_at=step_end, output=output
+        )
 
     def __str__(self):
         return self.name
