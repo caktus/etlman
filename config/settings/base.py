@@ -63,6 +63,7 @@ DJANGO_APPS = [
     "django.contrib.admin",
     "django.forms",
     "django_htmx",
+    "simple_history",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -137,6 +138,7 @@ MIDDLEWARE = [
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # STATIC

@@ -4,6 +4,7 @@ import json
 import pytz
 from django.db import models, transaction
 from django_celery_beat.models import PERIOD_CHOICES, IntervalSchedule, PeriodicTask
+from simple_history.models import HistoricalRecords
 
 from etlman.backends import get_backend
 from etlman.users.models import User
@@ -15,6 +16,7 @@ class Project(models.Model):
     collaborators = models.ManyToManyField(
         User, through="Collaborator", related_name="projects"
     )
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -29,6 +31,7 @@ class Collaborator(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=32, choices=USER_ROLE_CHOICES)
+    history = HistoricalRecords()
 
 
 class DataInterface(models.Model):
@@ -40,6 +43,7 @@ class DataInterface(models.Model):
     interface_type = models.CharField(max_length=32, choices=INTERFACE_TYPE_CHOICES)
     connection_string = models.TextField()
     sql_query = models.TextField()
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -49,6 +53,7 @@ class Pipeline(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
+    history = HistoricalRecords()
 
     def run_pipeline(self):
         backend = get_backend()
@@ -70,6 +75,7 @@ class Step(models.Model):
     language = models.CharField(max_length=56, choices=LANGUAGE_CHOICES)
     script = models.TextField()
     step_order = models.PositiveIntegerField()
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -107,6 +113,7 @@ class PipelineSchedule(models.Model):
         max_length=56, blank=True, null=True, choices=PERIOD_CHOICES
     )
     published = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     @transaction.atomic
     def save(self, *args, **kwargs):
