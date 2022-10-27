@@ -35,7 +35,7 @@
     {% block javascript %}
 
     <!-- place project specific Javascript in this file -->
-    <script src="{% static 'js/app.js' %}"></script>
+    <script defer src="{% static 'js/app.js' %}"></script>
     <!-- How to download HTMX - https://django-htmx.readthedocs.io/en/latest/installation.html#:~:text=Install%20htmx%23,debug.js%27%20%25%7D%22%20defer%3E%3C/script%3E -->
     {% django_htmx_script %} {% endblock javascript %}
   </head>
