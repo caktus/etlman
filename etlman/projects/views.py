@@ -170,7 +170,6 @@ def new_step_step2(request, project_id, step_id=None):
 
     # Form functionality
     if request.method == "POST":
-        print(request.POST)
         form_step = StepForm(request.POST, instance=step)
         form_pipeline = PipelineForm(session_pipeline, instance=loaded_pipeline)
         form_datainterface = DataInterfaceForm(

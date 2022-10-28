@@ -19,6 +19,7 @@ window.createEditor = function (id, model) {
     });
 }
 
+
 window.selectedLanguage = function (model, lang) {
     monaco.editor.setModelLanguage(model, lang);
 };

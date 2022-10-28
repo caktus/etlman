@@ -18,6 +18,10 @@
   });
 
   selectedLanguage(monacoEditor.getModel(), languageDropdown.value);
+
+  window.getMonacoValue = function () {
+    return monacoEditor.getModel().getValue();
+  };
 </script>
 
 <!-- TODO: This CSS is very hackish, we *may* want to change it -->
