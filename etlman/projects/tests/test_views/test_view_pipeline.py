@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 from etlman.projects.forms import DataInterfaceForm, PipelineForm, StepForm
 from etlman.projects.models import DataInterface, Pipeline, PipelineSchedule, Step
@@ -500,11 +501,12 @@ class TestScriptConnectionTestView:
 
 @pytest.mark.django_db
 class TestPipelineSchedule:
-    def test_schedule_pipeline_get(self, nonadmin_client, project):
+    def test_schedule_pipeline_get(self, client, project):
         """The pipeline schedule form loads."""
         pipeline = PipelineFactory()
-        response = nonadmin_client.get(
+        response = client.get(
             reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            follow=True,
         )
         assert response.status_code == HTTPStatus.OK.numerator
         assert PipelineSchedule.objects.count() == 0
@@ -512,12 +514,12 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post(self, nonadmin_client, project):
         """PipelineSchedule saves data to the database."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             "start_date": p_schedule.start_date,
             "start_time": p_schedule.start_time,
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": p_schedule.interval,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
@@ -533,12 +535,12 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post_missing_fields(self, nonadmin_client, project):
         """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             # "start_date" # Intentionally blank
             # "start_time" # Intentionally blank
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": p_schedule.interval,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
@@ -558,12 +560,12 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_post_invalid_values(self, nonadmin_client, project):
         """The form returns errors because fields are missing."""
         pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory.build()
         data = {
             "start_date": p_schedule.start_date,
             "start_time": p_schedule.start_time,
             "time_zone": p_schedule.time_zone,
-            "frequency": "invalid_frequency",
             "interval": p_schedule.interval,
             "unit": "invalid_unit",
             "published": p_schedule.published,
@@ -574,9 +576,6 @@ class TestPipelineSchedule:
             data=data,
         )
         err_msg = {
-            "frequency": [
-                "Select a valid choice. invalid_frequency is not one of the available choices."
-            ],
             "unit": [
                 "Select a valid choice. invalid_unit is not one of the available choices."
             ],
@@ -588,12 +587,14 @@ class TestPipelineSchedule:
     def test_schedule_pipeline_edit_existing_values(self, nonadmin_client, project):
         """Edit an existing PipelineSchedule and checks that values from DB match new data."""
         pipeline = PipelineFactory(project=project)
+        StepFactory(pipeline=pipeline)
         p_schedule = PipelineScheduleFactory(pipeline=pipeline)
+        start_date = datetime.date(2000, 12, 31)
+        start_time = datetime.time(10, 10, 10)
         data = {
-            "start_date": datetime.date(2000, 12, 31),
-            "start_time": datetime.time(10, 10, 10),
+            "start_date": start_date.strftime("%Y-%m-%d"),
+            "start_time": start_time.strftime("%H:%M:%S"),
             "time_zone": p_schedule.time_zone,
-            "frequency": p_schedule.frequency,
             "interval": 101,
             "unit": p_schedule.unit,
             "published": p_schedule.published,
@@ -608,6 +609,72 @@ class TestPipelineSchedule:
         assert response.status_code == HTTPStatus.FOUND.numerator
         assert PipelineSchedule.objects.count() == 1
         db_p_schedule = PipelineSchedule.objects.get(pk=p_schedule.pk)
-        assert data["start_date"] == db_p_schedule.start_date
-        assert data["start_time"] == db_p_schedule.start_time
+        assert start_date == db_p_schedule.start_date
+        assert start_time == db_p_schedule.start_time
         assert data["interval"] == db_p_schedule.interval
+
+
+@pytest.mark.django_db
+class TestDjangoCeleryBeat:
+    def test_django_celery_beat_task_and_schedule(self, nonadmin_client, project):
+        """
+        Interval Schedule and Periodic Task exist because Pipeline
+        Schedule was created. Name, interval, and unit match.
+        """
+        pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        pipeline_schedule = PipelineSchedule.objects.get()
+        periodic_task = PeriodicTask.objects.all().first()
+
+        assert IntervalSchedule.objects.count() == 1
+        assert PeriodicTask.objects.count() == 1
+        assert pipeline_schedule.pipeline.name == periodic_task.name
+        assert pipeline_schedule.interval == periodic_task.interval.every
+        assert pipeline_schedule.unit == periodic_task.interval.period
+
+    def test_django_celery_beat_one_interval_several_tasks(
+        self, nonadmin_client, project
+    ):
+        """One interval schedule exists along with 3 different periodic tasks."""
+        pipeline = PipelineFactory()
+        StepFactory(pipeline=pipeline)
+        p_schedule = PipelineScheduleFactory.build()
+        data = {
+            "start_date": p_schedule.start_date,
+            "start_time": p_schedule.start_time,
+            "time_zone": p_schedule.time_zone,
+            "interval": p_schedule.interval,
+            "unit": p_schedule.unit,
+            "published": p_schedule.published,
+        }
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
+            data=data,
+        )
+        pipeline2 = PipelineFactory()
+        StepFactory(pipeline=pipeline2)
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline2.id)),
+            data=data,
+        )
+        pipeline3 = PipelineFactory()
+        StepFactory(pipeline=pipeline3)
+        nonadmin_client.post(
+            reverse("projects:schedule_pipeline", args=(project.pk, pipeline3.id)),
+            data=data,
+        )
+        assert IntervalSchedule.objects.count() == 1
+        assert PeriodicTask.objects.count() == 3

@@ -107,7 +107,7 @@ def new_pipeline_step1(request, project_id, pipeline_id=None):
     loaded_pipeline = (
         get_object_or_404(Pipeline, pk=pipeline_id) if pipeline_id else None
     )
-    loaded_step = loaded_pipeline.step_set.all().first() if loaded_pipeline else None
+    loaded_step = loaded_pipeline.steps.all().first() if loaded_pipeline else None
     loaded_data_interface = loaded_pipeline.input if loaded_pipeline else None
     username = request.user.username
     pipeline_session_key = get_session_key(SessionKeyEnum.PIPELINE, loaded_pipeline)
@@ -330,6 +330,8 @@ def test_step_connection_string(request, project_id):
 def schedule_pipeline_runtime(request, project_id, pipeline_id):
     project = get_object_or_404(Project, pk=project_id)
     pipeline = get_object_or_404(Pipeline, pk=pipeline_id)
+    # breakpoint()
+    step = get_object_or_404(Step, pipeline=pipeline_id)
     # Safely check for existence of related object:
     # https://stackoverflow.com/a/40743258/166053
     if hasattr(pipeline, "schedule"):
@@ -339,13 +341,12 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
     if request.method == "POST":
         form = PipelineScheduleForm(request.POST, instance=pipeline_schedule)
         if form.is_valid():
-            schedule_form = form.save(commit=False)
-            schedule_form.pipeline = pipeline
-            schedule_form.save()
+            schedule = form.save(commit=False)
+            schedule.pipeline = pipeline
+            schedule.save()
             return HttpResponseRedirect(
                 reverse("projects:list_pipeline", args=(project.pk,))
             )
-
     else:
         form = PipelineScheduleForm(
             instance=pipeline_schedule,
@@ -353,5 +354,5 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             if pipeline_schedule is None
             else None,
         )
-    context = {"form": form, "project": project, "pipeline": pipeline}
+    context = {"form": form, "project": project, "pipeline": pipeline, "step": step}
     return render(request, "projects/schedule_pipeline.html", context)

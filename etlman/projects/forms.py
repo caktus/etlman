@@ -53,7 +53,6 @@ class PipelineScheduleForm(forms.ModelForm):
             "start_date",
             "start_time",
             "time_zone",
-            "frequency",
             "interval",
             "unit",
             "published",
