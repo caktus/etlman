@@ -68,7 +68,7 @@ class Pipeline(models.Model):
                 }
             )
         PipelineRun.objects.create(
-            pipeline=self.pk,
+            pipeline=self,
             started_at=self.schedule.task.start_time,
             ended_at=self.schedule.task.last_run_at,
             output=output,
@@ -161,7 +161,7 @@ class PipelineSchedule(models.Model):
 
 class PipelineRun(models.Model):
     pipeline = models.ForeignKey(
-        Pipeline, on_delete=models.CASCADE, related_name="run_pipeline"
+        Pipeline, on_delete=models.CASCADE, related_name="pipeline_runs"
     )
     started_at = models.DateTimeField()
     ended_at = models.DateTimeField()
