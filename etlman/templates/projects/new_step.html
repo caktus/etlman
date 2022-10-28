@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% load crispy_forms_tags %} {% block content %}
 
 <div class="container">
-  <form method="post" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <form method="post">
     {% csrf_token %} {{ form_step|crispy }}
     <div class="row pt-4">
       <div class="row pt-3">
@@ -12,6 +12,7 @@
           <button
             type="submit"
             class="btn btn-info"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-post="{% url 'projects:step_test' project.pk %}"
             hx-target="#step_result"
             hx-include="[name='language']"
