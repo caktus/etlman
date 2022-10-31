@@ -3,6 +3,7 @@ import json
 
 import pytz
 from django.db import models, transaction
+from django.utils import timezone
 from django_celery_beat.models import PERIOD_CHOICES, IntervalSchedule, PeriodicTask
 
 from etlman.backends import get_backend
@@ -51,6 +52,7 @@ class Pipeline(models.Model):
     input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
 
     def run_pipeline(self, backend=None):
+        start_time = timezone.now()
         if backend is None:
             backend = get_backend()
         output = {
@@ -67,10 +69,11 @@ class Pipeline(models.Model):
                     "stderr": stderr,
                 }
             )
+        end_time = timezone.now()
         PipelineRun.objects.create(
             pipeline=self,
-            started_at=self.schedule.task.start_time,
-            ended_at=self.schedule.task.last_run_at,
+            started_at=start_time,
+            ended_at=end_time,
             output=output,
         )
 

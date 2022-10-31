@@ -1,10 +1,11 @@
 import pytest
 
 from etlman.backends.test_backend import TestBackend
-from etlman.projects.models import PipelineRun
+from etlman.projects.models import Pipeline, PipelineRun
 from etlman.projects.tests.factories import (
     DataInterfaceFactory,
     PipelineFactory,
+    PipelineScheduleFactory,
     ProjectFactory,
     StepFactory,
 )
@@ -29,20 +30,38 @@ class TestPipelineModel:
         """
         Pipeline.run_pipeline() method creates the correct PipelineRun object in the database.
         """
-        pipeline = PipelineFactory()
-        StepFactory()
+        pipeline = Pipeline(name=PipelineFactory.build().name)
+        pipeline.project = ProjectFactory()
+        pipeline.save()  # Saved pipeline to avoid integrity error due to atomic transaction
+        PipelineScheduleFactory(pipeline=pipeline)
+        StepFactory(pipeline=pipeline)
         backend = TestBackend()
         pipeline.run_pipeline(backend=backend)
-        # assertions to check for:
-        # - count of PipelineRuns
         PipelineRun.objects.count() == 1
-        # - get the one PipelineRun that was created
-        PipelineRun.objects.all()
-        # - check all attributes on the PipelineRun object
+        last_run_pipeline = PipelineRun.objects.all().first()
+        assert pipeline.name == last_run_pipeline.pipeline.name
+        assert pipeline.project == last_run_pipeline.pipeline.project
 
     def test_run_pipeline_multiple_steps(self):
         """
         Pipeline.run_pipeline() method creates the correct PipelineRun object in the database
         for a Pipeline with multiple Steps.
         """
-        # Same as above, with 2 or 3 steps.
+        pipeline = Pipeline(name=PipelineFactory.build().name)
+        pipeline.project = ProjectFactory()
+        pipeline.save()  # Saved pipeline to avoid integrity error due to atomic transaction
+        pipeline2 = Pipeline(name=PipelineFactory.build().name)
+        pipeline2.project = ProjectFactory()
+        pipeline2.save()
+        pipeline3 = Pipeline(name=PipelineFactory.build().name)
+        pipeline3.project = ProjectFactory()
+        pipeline3.save()
+        PipelineScheduleFactory(pipeline=pipeline)
+        StepFactory(pipeline=pipeline)
+        StepFactory(pipeline=pipeline2)
+        StepFactory(pipeline=pipeline3)
+        backend = TestBackend()
+        pipeline.run_pipeline(backend=backend)
+        pipeline2.run_pipeline(backend=backend)
+        pipeline3.run_pipeline(backend=backend)
+        PipelineRun.objects.count() == 3
