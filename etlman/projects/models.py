@@ -166,3 +166,6 @@ class PipelineRun(models.Model):
     started_at = models.DateTimeField()
     ended_at = models.DateTimeField()
     output = models.JSONField()
+
+    def __str__(self):
+        return self.pipeline.name

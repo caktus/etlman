@@ -80,3 +80,13 @@ class PipelineScheduleFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.PipelineSchedule
+
+
+class PipelineRunFactory(factory.django.DjangoModelFactory):
+    pipeline = factory.SubFactory(PipelineFactory)
+    started_at = factory.Faker("date_time")
+    ended_at = factory.Faker("date_time_this_month")
+    output = factory.Faker("sentence")
+
+    class Meta:
+        model = models.PipelineRun

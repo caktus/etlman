@@ -25,11 +25,13 @@ class StepInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [CollaboratorInline, DataInterfaceInLine]
+    history_list_display = ["status"]
     list_display = ["name", "description"]
 
 
 class DataInterfaceAdmin(admin.ModelAdmin):
     list_display = ["name", "project", "interface_type"]
+    history_list_display = ["status"]
     list_filter = ("project__name",)
 
 
@@ -43,6 +45,7 @@ class PipelineAdmin(admin.ModelAdmin):
 
 class StepAdmin(admin.ModelAdmin):
     list_display = ["name", "step_order"]
+    history_list_display = ["status"]
     list_filter = ("pipeline__project__name",)
 
 
