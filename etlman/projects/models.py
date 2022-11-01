@@ -4,7 +4,12 @@ import json
 import pytz
 from django.db import models, transaction
 from django.utils import timezone
-from django_celery_beat.models import PERIOD_CHOICES, IntervalSchedule, PeriodicTask
+from django_celery_beat.models import (
+    MICROSECONDS,
+    PERIOD_CHOICES,
+    IntervalSchedule,
+    PeriodicTask,
+)
 
 from etlman.backends import get_backend
 from etlman.users.models import User
@@ -78,7 +83,7 @@ class Pipeline(models.Model):
         )
 
     def __str__(self):
-        return self.name
+        return f"{self.name}, pk: {self.id}"
 
 
 class Step(models.Model):
@@ -114,6 +119,10 @@ class Step(models.Model):
 
 class PipelineSchedule(models.Model):
     TIMEZONES = [(tz, tz) for tz in pytz.common_timezones]
+    # Don't allow selection of these unit values:
+    UNITS = [
+        (value, label) for value, label in PERIOD_CHOICES if value not in {MICROSECONDS}
+    ]
     task = models.ForeignKey(
         PeriodicTask, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -125,7 +134,10 @@ class PipelineSchedule(models.Model):
     time_zone = models.CharField(max_length=56, choices=TIMEZONES)
     interval = models.IntegerField(blank=True, null=True)
     unit = models.CharField(
-        max_length=56, blank=True, null=True, choices=PERIOD_CHOICES
+        max_length=56,
+        blank=True,
+        null=True,
+        choices=UNITS,
     )
     published = models.BooleanField(default=False)
 
