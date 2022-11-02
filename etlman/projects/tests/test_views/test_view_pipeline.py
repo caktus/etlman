@@ -529,12 +529,9 @@ class TestPipelineSchedule:
             reverse("projects:schedule_pipeline", args=(project.pk, pipeline.id)),
             data=data,
         )
-        assert response.status_code == HTTPStatus.FOUND.numerator, (
-            "Form errors: "
-            + str(response.context["form"].errors)
-            + "\nData interface form errors: "
-            + str(response.context["form"].errors)
-        )
+        assert (
+            response.status_code == HTTPStatus.FOUND.numerator
+        ), "Form errors: " + str(response.context["form"].errors)
         assert PipelineSchedule.objects.count() == 1
 
     def test_schedule_pipeline_post_missing_fields(self, nonadmin_client, project):
@@ -611,12 +608,9 @@ class TestPipelineSchedule:
             ),
             data=data,
         )
-        assert response.status_code == HTTPStatus.FOUND.numerator, (
-            "Form errors: "
-            + str(response.context["form"].errors)
-            + "\nData interface form errors: "
-            + str(response.context["form"].errors)
-        )
+        assert (
+            response.status_code == HTTPStatus.FOUND.numerator
+        ), "Form errors: " + str(response.context["form"].errors)
         assert PipelineSchedule.objects.count() == 1
         db_p_schedule = PipelineSchedule.objects.get(pk=p_schedule.pk)
         assert start_date == db_p_schedule.start_date
