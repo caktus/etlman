@@ -80,7 +80,7 @@ class PipelineScheduleFactory(factory.django.DjangoModelFactory):
     time_zone = factory.fuzzy.FuzzyChoice(
         [key for key, _ in models.PipelineSchedule.TIMEZONES]
     )
-    published = True
+    published = factory.Faker("pybool")
 
     class Meta:
         model = models.PipelineSchedule
