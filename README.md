@@ -143,13 +143,13 @@ open htmlcov/index.html
 To re-build the js & css bundles with webpack, run:
 
 ```sh
-webpack --config webpack.config.js
+npm run webpack-build
 ```
 
-To run webpack continuously to check for updates you are making to the build in realtime, run:
+To run webpack continuously to watch for updates you are making to the build in realtime, run:
 
 ```sh
-npx webpack watch --config webpack.config.js --mode development"
+npm run webpack-watch
 ```
 
 ## Custom Bootstrap Compilation
