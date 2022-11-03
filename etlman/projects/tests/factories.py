@@ -3,14 +3,9 @@ import random
 
 import factory
 import factory.fuzzy
-from django_celery_beat.models import MICROSECONDS, PERIOD_CHOICES
 
 from etlman.projects import models
 from etlman.users.tests.factories import UserFactory
-
-UNITS = [
-    (value, label) for value, label in PERIOD_CHOICES if value not in {MICROSECONDS}
-]  # Units without microseconds
 
 
 class ProjectFactory(factory.django.DjangoModelFactory):
@@ -76,7 +71,7 @@ class PipelineScheduleFactory(factory.django.DjangoModelFactory):
         )
     )
     interval = factory.Sequence(lambda n: n)
-    unit = factory.fuzzy.FuzzyChoice([key for key, _ in UNITS])
+    unit = factory.fuzzy.FuzzyChoice([key for key, _ in models.PipelineSchedule.UNITS])
     time_zone = factory.fuzzy.FuzzyChoice(
         [key for key, _ in models.PipelineSchedule.TIMEZONES]
     )
