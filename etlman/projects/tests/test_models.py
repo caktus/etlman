@@ -30,13 +30,20 @@ class TestPipelineModel:
         Pipeline.run_pipeline() method creates the correct PipelineRun object in the database.
         """
         pipeline = PipelineFactory()
-        StepFactory(pipeline=pipeline)
+        step = StepFactory(pipeline=pipeline)
         backend = TestBackend()
         pipeline.run_pipeline(backend=backend)
         PipelineRun.objects.count() == 1
         last_pipeline_run = PipelineRun.objects.all().first()
         assert pipeline == last_pipeline_run.pipeline
-        assert last_pipeline_run.output
+        assert last_pipeline_run.output["pipeline_id"] == pipeline.pk
+        assert last_pipeline_run.output["steps"][0]["step_id"] == step.pk
+        assert last_pipeline_run.output["steps"][0]["stdout"].startswith(
+            TestBackend.STDOUT_MARKER
+        )
+        assert last_pipeline_run.output["steps"][0]["stderr"].startswith(
+            TestBackend.STDERR_MARKER
+        )
 
     def test_run_pipeline_multiple_steps(self):
         """
