@@ -33,9 +33,8 @@ class DataInterfaceAdmin(SimpleHistoryAdmin):
     list_filter = ("project__name",)
 
 
-class PipelineHistoryAdmin(SimpleHistoryAdmin):
+class PipelineAdmin(SimpleHistoryAdmin):
     list_display = ["name", "project"]
-    history_list_display = ["status"]
     list_filter = ("project__name",)
     inlines = [
         StepInline,
@@ -50,10 +49,11 @@ class StepAdmin(SimpleHistoryAdmin):
 class PipelineScheduleAdmin(SimpleHistoryAdmin):
     list_display = ["pipeline", "start_date", "start_time", "published"]
     list_filter = ("published",)
+    history_list_display = ("published",)
 
 
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(DataInterface, DataInterfaceAdmin)
-admin.site.register(Pipeline, PipelineHistoryAdmin)
+admin.site.register(Pipeline, PipelineAdmin)
 admin.site.register(Step, StepAdmin)
 admin.site.register(PipelineSchedule, PipelineScheduleAdmin)
