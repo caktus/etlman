@@ -102,6 +102,7 @@ python manage.py runserver
 If not using ident authentication, you might need to update the `DATABASE_URL` in your `.envrc`.
 
 ### 6. Exec into the Docker container (if developing in Docker)
+
 You'll need to open a bash shell container to run migrate and createsuperuser inside the container:
 
 ```sh
@@ -109,6 +110,7 @@ docker-compose run --rm django bash
 ```
 
 ### 7. Migrate and Create a super user
+
 **Note**: When creating a super user, you must provide an email address. If you fail to provide an email address, you will not be able to verify your account (via the link in the email printed to the console) nor login to the system.
 
 ```sh
@@ -136,6 +138,20 @@ coverage html
 open htmlcov/index.html
 ```
 
+## Webpack
+
+To re-build the js & css bundles with webpack, run:
+
+```sh
+webpack --config webpack.config.js
+```
+
+To run webpack continuously to check for updates you are making to the build in realtime, run:
+
+```sh
+npx webpack watch --config webpack.config.js --mode development"
+```
+
 ## Custom Bootstrap Compilation
 
 The generated CSS is set up with automatic Bootstrap recompilation with variables of your choice.
@@ -143,6 +159,4 @@ Bootstrap v5 is installed using npm and customised by tweaking your variables in
 
 You can find a list of available variables [in the bootstrap source](https://github.com/twbs/bootstrap/blob/main/scss/_variables.scss), or get explanations on them in the [Bootstrap docs](https://getbootstrap.com/docs/5.1/customize/sass/).
 
-Bootstrap's javascript as well as its dependencies is concatenated into a single file: `static/js/vendors.js`.
-
-For more information on live reloading, please refer to the [django-cookiecutter docs](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
+Bootstrap's javascript as well as its dependencies is concatenated into a single file: `static/js/app.js`.
