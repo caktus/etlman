@@ -60,6 +60,5 @@ class TestPipelineModel:
         last_pipeline_run = PipelineRun.objects.all().first()
         assert last_pipeline_run.output["pipeline_id"] == pipeline.pk
         assert len(last_pipeline_run.output["steps"]) == 3
-        run_step_ids = set()
-        [run_step_ids.add(id["step_id"]) for id in last_pipeline_run.output["steps"]]
+        run_step_ids = {s["step_id"] for s in last_pipeline_run.output["steps"]}
         assert run_step_ids == {step1.id, step2.id, step3.id}
