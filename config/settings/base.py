@@ -77,7 +77,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "etlman.users",
-    "etlman.projects"
+    "etlman.projects",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
