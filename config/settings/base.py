@@ -62,8 +62,6 @@ DJANGO_APPS = [
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
-    "django_htmx",
-    "simple_history",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -73,6 +71,8 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "django_celery_beat",
     "fontawesomefree",
+    "simple_history",
+    "django_htmx",
 ]
 
 LOCAL_APPS = [
