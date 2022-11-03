@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import (
     Collaborator,
@@ -23,19 +24,19 @@ class StepInline(admin.TabularInline):
     model = Step
 
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(SimpleHistoryAdmin):
     inlines = [CollaboratorInline, DataInterfaceInLine]
     history_list_display = ["status"]
     list_display = ["name", "description"]
 
 
-class DataInterfaceAdmin(admin.ModelAdmin):
+class DataInterfaceAdmin(SimpleHistoryAdmin):
     list_display = ["name", "project", "interface_type"]
     history_list_display = ["status"]
     list_filter = ("project__name",)
 
 
-class PipelineAdmin(admin.ModelAdmin):
+class PipelineAdmin(SimpleHistoryAdmin):
     list_display = ["name", "project"]
     list_filter = ("project__name",)
     inlines = [
@@ -43,15 +44,16 @@ class PipelineAdmin(admin.ModelAdmin):
     ]
 
 
-class StepAdmin(admin.ModelAdmin):
+class StepAdmin(SimpleHistoryAdmin):
     list_display = ["name", "step_order"]
     history_list_display = ["status"]
     list_filter = ("pipeline__project__name",)
 
 
-class PipelineScheduleAdmin(admin.ModelAdmin):
+class PipelineScheduleAdmin(SimpleHistoryAdmin):
     list_display = ["pipeline", "start_date", "start_time", "published"]
     list_filter = ("published",)
+    history_list_display = ("published",)
 
 
 class PipelineRunAdmin(admin.ModelAdmin):
