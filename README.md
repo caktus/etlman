@@ -41,6 +41,7 @@ If you **don't** intend to use Docker to develop, install requirements locally:
 ```sh
 pip install -r requirements/local.txt
 npm install
+npm run webpack-build
 ```
 
 ### 4. Pre-commit
@@ -140,7 +141,7 @@ open htmlcov/index.html
 
 ## Webpack
 
-To re-build the js & css bundles with webpack, run:
+If you make any changes to index.js or webpack.config.js, re-build the js & css bundles by running:
 
 ```sh
 npm run webpack-build

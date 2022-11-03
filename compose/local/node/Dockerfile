@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY ./package.json /app
 
-RUN npm install && npm cache clean --force
+RUN npm install && npm cache clean --force && npm run webpack-build
 
 ENV PATH ./node_modules/.bin/:$PATH
