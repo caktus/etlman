@@ -4,6 +4,7 @@ from .models import (
     Collaborator,
     DataInterface,
     Pipeline,
+    PipelineRun,
     PipelineSchedule,
     Project,
     Step,
@@ -24,11 +25,13 @@ class StepInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [CollaboratorInline, DataInterfaceInLine]
+    history_list_display = ["status"]
     list_display = ["name", "description"]
 
 
 class DataInterfaceAdmin(admin.ModelAdmin):
     list_display = ["name", "project", "interface_type"]
+    history_list_display = ["status"]
     list_filter = ("project__name",)
 
 
@@ -42,6 +45,7 @@ class PipelineAdmin(admin.ModelAdmin):
 
 class StepAdmin(admin.ModelAdmin):
     list_display = ["name", "step_order"]
+    history_list_display = ["status"]
     list_filter = ("pipeline__project__name",)
 
 
@@ -50,8 +54,14 @@ class PipelineScheduleAdmin(admin.ModelAdmin):
     list_filter = ("published",)
 
 
+class PipelineRunAdmin(admin.ModelAdmin):
+    list_display = ["pipeline", "started_at", "ended_at", "output"]
+    list_filter = ("started_at", "ended_at")
+
+
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(DataInterface, DataInterfaceAdmin)
 admin.site.register(Pipeline, PipelineAdmin)
 admin.site.register(Step, StepAdmin)
 admin.site.register(PipelineSchedule, PipelineScheduleAdmin)
+admin.site.register(PipelineRun, PipelineRunAdmin)
