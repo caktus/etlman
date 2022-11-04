@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django_celery_beat.models import PeriodicTask
 from sqlalchemy import create_engine
 
 from etlman.projects.authorizers import (
@@ -20,7 +21,13 @@ from etlman.projects.forms import (
     ProjectForm,
     StepForm,
 )
-from etlman.projects.models import Collaborator, Pipeline, Project, Step
+from etlman.projects.models import (
+    Collaborator,
+    Pipeline,
+    PipelineSchedule,
+    Project,
+    Step,
+)
 
 
 class MessagesEnum(enum.Enum):
@@ -57,6 +64,16 @@ def list_pipeline(request, project_id):
 def delete_pipeline(request, project_id, pipeline_id):
     pipeline = get_object_or_404(Pipeline, id=pipeline_id)
     project = get_object_or_404(Project, id=project_id)
+
+    # Delete Pipeline's Pipeline Schedule and/or Periodic Task(Celery)
+    pipeline_schedule = PipelineSchedule.objects.get(pipeline=pipeline)
+    if pipeline_schedule.task:
+        pipeline_task_id = pipeline_schedule.task.id
+        PeriodicTask.objects.get(id=pipeline_task_id).delete()
+        pipeline_schedule.task.delete()
+        print(
+            f"Bye! Pipeline {pipeline.name} did not have a Pipeline Schedule or Periodic Task"
+        )
     pipeline.delete()
     messages.add_message(
         request,
