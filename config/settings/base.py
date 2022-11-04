@@ -62,7 +62,6 @@ DJANGO_APPS = [
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
-    "django_htmx",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -72,11 +71,13 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "django_celery_beat",
     "fontawesomefree",
+    "simple_history",
+    "django_htmx",
 ]
 
 LOCAL_APPS = [
     "etlman.users",
-    "etlman.projects"
+    "etlman.projects",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -137,6 +138,7 @@ MIDDLEWARE = [
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # STATIC
