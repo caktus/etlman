@@ -30,10 +30,8 @@
     "last 2 versions"
   ],
   "scripts": {
-    "dev": "gulp",
-    "build": "gulp generate-assets",
-    "webpack-build": "webpack --config webpack.config.js",
-    "webpack-watch": "npx webpack watch --config webpack.config.js --mode development"
+    "dev": "npx webpack watch --config webpack.config.js --mode development",
+    "build": "webpack --config webpack.config.js"
   },
   "dependencies": {
     "htmx.org": "^1.8.0",
