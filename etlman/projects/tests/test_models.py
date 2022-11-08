@@ -5,6 +5,7 @@ from etlman.projects.models import PipelineRun
 from etlman.projects.tests.factories import (
     DataInterfaceFactory,
     PipelineFactory,
+    PipelineRunFactory,
     ProjectFactory,
     StepFactory,
 )
@@ -21,6 +22,8 @@ class TestScriptForm:
         assert f"{builded_object.name}, pk: {builded_object.id}" == str(builded_object)
         builded_object = StepFactory.build()
         assert builded_object.name == str(builded_object)
+        builded_object = PipelineRunFactory.build()
+        assert builded_object.pipeline.name == str(builded_object)
 
 
 @pytest.mark.django_db

@@ -138,11 +138,9 @@ class PipelineSchedule(models.Model):
     start_date = models.DateField()
     start_time = models.TimeField()
     time_zone = models.CharField(max_length=56, choices=TIMEZONES)
-    interval = models.IntegerField(blank=True, null=True)
+    interval = models.IntegerField()
     unit = models.CharField(
         max_length=56,
-        blank=True,
-        null=True,
         choices=UNITS,
     )
     published = models.BooleanField(default=False)
