@@ -4,12 +4,15 @@ from random import randint
 
 import pytest
 from django.urls import reverse
+from django_celery_beat.models import PeriodicTask
 
-from etlman.projects.models import Collaborator, Pipeline
+from etlman.projects.models import Collaborator, Pipeline, PipelineSchedule, Step
 from etlman.projects.tests.factories import (
     CollaboratorFactory,
     PipelineFactory,
+    PipelineScheduleFactory,
     ProjectFactory,
+    StepFactory,
 )
 from etlman.projects.views import MessagesEnum
 from etlman.users.models import User
@@ -72,10 +75,16 @@ class TestProjectDropdownList:
         assert saved_project not in project_list, context["user"]
 
     def test_delete_pipeline(self, nonadmin_client, nonadmin_user):
+        """
+        The pipeline delete view deletes the pipeline and its related models.
+        """
         saved_project = ProjectFactory.create()
         CollaboratorFactory.create(project=saved_project, user=nonadmin_user)
         pipeline = PipelineFactory(project=saved_project)
-        assert Pipeline.objects.count() == 1
+        PipelineScheduleFactory(pipeline=pipeline)
+        StepFactory(pipeline=pipeline)
+        # PeriodicTask should be created by the PipelineSchedule.save() method
+        assert PeriodicTask.objects.count() == 1
         response = nonadmin_client.post(
             reverse(
                 "projects:delete_pipeline",
@@ -93,6 +102,9 @@ class TestProjectDropdownList:
             MessagesEnum.PIPELINE_DELETED.value.format(name=pipeline.name) in html
         ), html
         assert Pipeline.objects.count() == 0
+        assert PipelineSchedule.objects.count() == 0
+        assert PeriodicTask.objects.count() == 0
+        assert Step.objects.count() == 0
 
     def test_confirm_delete_pipeline(self, nonadmin_client, nonadmin_user):
         saved_project = ProjectFactory.create()
