@@ -40,8 +40,9 @@ If you **don't** intend to use Docker to develop, install requirements locally:
 
 ```sh
 pip install -r requirements/local.txt
+nvm use
 npm install
-npm run dev
+npm run build
 ```
 
 ### 4. Pre-commit
@@ -119,7 +120,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-After creating an account, navigate to http://localhost:3000/ to login. On first login, you will be prompted to verify your account. You should see the verification email in the console output from the `etlman_local_django` container (or runserver, if running locally).
+After creating an account, navigate to http://localhost:8000/ to login. On first login, you will be prompted to verify your account. You should see the verification email in the console output from the `etlman_local_django` container (or runserver, if running locally).
 
 ## Testing
 
@@ -144,13 +145,13 @@ open htmlcov/index.html
 If you make any changes to index.js or webpack.config.js, re-build the js & css bundles by running:
 
 ```sh
-npm run webpack-build
+npm run build
 ```
 
 To run webpack continuously to watch for updates you are making to the build in realtime, run:
 
 ```sh
-npm run webpack-watch
+npm run dev
 ```
 
 ## Custom Bootstrap Compilation
