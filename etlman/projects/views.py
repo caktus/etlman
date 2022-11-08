@@ -345,6 +345,7 @@ def test_step_connection_string(request, project_id):
 def schedule_pipeline_runtime(request, project_id, pipeline_id):
     project = get_object_or_404(Project, pk=project_id)
     pipeline = get_object_or_404(Pipeline, pk=pipeline_id)
+    pipeline_name = pipeline.name
     # breakpoint()
     step = get_object_or_404(Step, pipeline=pipeline_id)
     # Safely check for existence of related object:
@@ -369,5 +370,11 @@ def schedule_pipeline_runtime(request, project_id, pipeline_id):
             if pipeline_schedule is None
             else None,
         )
-    context = {"form": form, "project": project, "pipeline": pipeline, "step": step}
+    context = {
+        "form": form,
+        "project": project,
+        "pipeline": pipeline,
+        "pipeline_name": pipeline_name,
+        "step": step,
+    }
     return render(request, "projects/schedule_pipeline.html", context)
