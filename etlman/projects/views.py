@@ -3,11 +3,11 @@ import enum
 from denied.decorators import authorize
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django_celery_beat.models import PeriodicTask
 from sqlalchemy import create_engine
 
 from etlman.projects.authorizers import (
@@ -60,20 +60,18 @@ def list_pipeline(request, project_id):
     return render(request, "projects/list_pipeline.html", context)
 
 
+@transaction.atomic
 @authorize(user_is_project_collaborator)
 def delete_pipeline(request, project_id, pipeline_id):
     pipeline = get_object_or_404(Pipeline, id=pipeline_id)
     project = get_object_or_404(Project, id=project_id)
 
     # Delete Pipeline's Pipeline Schedule and/or Periodic Task(Celery)
-    pipeline_schedule = PipelineSchedule.objects.get(pipeline=pipeline)
-    if pipeline_schedule.task:
-        pipeline_task_id = pipeline_schedule.task.id
-        PeriodicTask.objects.get(id=pipeline_task_id).delete()
-        pipeline_schedule.task.delete()
-        print(
-            f"Bye! Pipeline {pipeline.name} did not have a Pipeline Schedule or Periodic Task"
-        )
+    pipeline_schedule = PipelineSchedule.objects.filter(pipeline=pipeline).first()
+    if pipeline_schedule:
+        if pipeline_schedule.task:
+            pipeline_schedule.task.delete()
+        pipeline_schedule.delete()
     pipeline.delete()
     messages.add_message(
         request,
