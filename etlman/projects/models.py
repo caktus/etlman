@@ -3,7 +3,14 @@ import json
 
 import pytz
 from django.db import models, transaction
-from django_celery_beat.models import PERIOD_CHOICES, IntervalSchedule, PeriodicTask
+from django.utils import timezone
+from django_celery_beat.models import (
+    MICROSECONDS,
+    PERIOD_CHOICES,
+    IntervalSchedule,
+    PeriodicTask,
+)
+from simple_history.models import HistoricalRecords
 
 from etlman.backends import get_backend
 from etlman.users.models import User
@@ -15,6 +22,7 @@ class Project(models.Model):
     collaborators = models.ManyToManyField(
         User, through="Collaborator", related_name="projects"
     )
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -29,6 +37,7 @@ class Collaborator(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=32, choices=USER_ROLE_CHOICES)
+    history = HistoricalRecords()
 
 
 class DataInterface(models.Model):
@@ -40,6 +49,7 @@ class DataInterface(models.Model):
     interface_type = models.CharField(max_length=32, choices=INTERFACE_TYPE_CHOICES)
     connection_string = models.TextField()
     sql_query = models.TextField()
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -49,15 +59,36 @@ class Pipeline(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     input = models.OneToOneField(DataInterface, null=True, on_delete=models.CASCADE)
+    history = HistoricalRecords()
 
-    def run_pipeline(self):
-        backend = get_backend()
+    def run_pipeline(self, backend=None):
+        start_time = timezone.now()
+        if backend is None:
+            backend = get_backend()
+        output = {
+            "pipeline_id": self.pk,
+            "steps": [],
+        }
         for step in self.steps.order_by("step_order").all():
-            step.run_script(backend=backend)
-            # TODO: Save results from script execution here
+            returncode, stdout, stderr = step.run_script(backend=backend)
+            output["steps"].append(
+                {
+                    "step_id": step.pk,
+                    "returncode": returncode,
+                    "stdout": stdout,
+                    "stderr": stderr,
+                }
+            )
+        end_time = timezone.now()
+        PipelineRun.objects.create(
+            pipeline=self,
+            started_at=start_time,
+            ended_at=end_time,
+            output=output,
+        )
 
     def __str__(self):
-        return self.name
+        return f"{self.name}, pk: {self.id}"
 
 
 class Step(models.Model):
@@ -70,6 +101,7 @@ class Step(models.Model):
     language = models.CharField(max_length=56, choices=LANGUAGE_CHOICES)
     script = models.TextField()
     step_order = models.PositiveIntegerField()
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -93,6 +125,10 @@ class Step(models.Model):
 
 class PipelineSchedule(models.Model):
     TIMEZONES = [(tz, tz) for tz in pytz.common_timezones]
+    # Don't allow selection of these unit values:
+    UNITS = [
+        (value, label) for value, label in PERIOD_CHOICES if value not in {MICROSECONDS}
+    ]
     task = models.ForeignKey(
         PeriodicTask, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -104,9 +140,13 @@ class PipelineSchedule(models.Model):
     time_zone = models.CharField(max_length=56, choices=TIMEZONES)
     interval = models.IntegerField(blank=True, null=True)
     unit = models.CharField(
-        max_length=56, blank=True, null=True, choices=PERIOD_CHOICES
+        max_length=56,
+        blank=True,
+        null=True,
+        choices=UNITS,
     )
     published = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -139,3 +179,15 @@ class PipelineSchedule(models.Model):
         else:
             self.task = PeriodicTask.objects.create(**task_params)
         super().save(*args, **kwargs)
+
+
+class PipelineRun(models.Model):
+    pipeline = models.ForeignKey(
+        Pipeline, on_delete=models.CASCADE, related_name="pipeline_runs"
+    )
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField()
+    output = models.JSONField()
+
+    def __str__(self):
+        return self.pipeline.name
