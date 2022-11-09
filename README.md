@@ -144,7 +144,7 @@ open htmlcov/index.html
 If you make any changes to index.js or webpack.config.js, re-build the js & css bundles by running:
 
 ```sh
-npm run webpack-build
+npm run build
 ```
 
 To run webpack continuously to watch for updates you are making to the build in realtime, run:
