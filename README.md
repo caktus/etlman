@@ -151,7 +151,7 @@ npm run build
 To run webpack continuously to watch for updates you are making to the build in realtime, run:
 
 ```sh
-npm run webpack-watch
+npm run dev
 ```
 
 ## Custom Bootstrap Compilation
