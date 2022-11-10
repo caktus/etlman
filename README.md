@@ -41,7 +41,8 @@ If you **don't** intend to use Docker to develop, install requirements locally:
 ```sh
 pip install -r requirements/local.txt
 npm install
-npm run dev
+nvm use
+npm run build
 ```
 
 ### 4. Pre-commit
