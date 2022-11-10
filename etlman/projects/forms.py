@@ -42,9 +42,7 @@ class StepForm(forms.ModelForm):
         # https://stackoverflow.com/a/22250192/166053
         widgets = {
             "script": MonacoEditorWidget(),
-            "language": forms.Select(
-                attrs={"onchange": "selectedLanguage(this.value);"}
-            ),
+            "language": forms.Select(),
         }
 
 
